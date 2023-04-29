@@ -44,11 +44,7 @@ try:
 
 except Error as e:
     print("Error while connecting to MySQL", e)
-finally:
-    if db.is_connected():
-        cursor.close()
-        db.close()
-        print("MySQL connection is closed")
+
 
 
 
@@ -77,3 +73,11 @@ def register():
         return render_template("register.html")
 
 
+
+
+@app.route("/logout", methods=["GET", "POST"])
+def logout():
+
+        cursor.close()
+        db.close()
+        print("MySQL connection is closed")

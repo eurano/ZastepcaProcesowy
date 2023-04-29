@@ -28,9 +28,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="app.py" />
+    <Compile Include="helpers.py" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="requirements.txt" />
+    <Content Include="static\styles.css" />
+    <Content Include="templates\index.html" />
+    <Content Include="templates\layout.html" />
   </ItemGroup>
   <ItemGroup>
     <Interpreter Include="env\">

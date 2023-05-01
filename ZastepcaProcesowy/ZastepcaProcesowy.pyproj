@@ -28,13 +28,17 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="app.py" />
+    <Compile Include="forms.py" />
     <Compile Include="helpers.py" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="requirements.txt" />
     <Content Include="static\styles.css" />
-    <Content Include="templates\index.html" />
+    <Content Include="templates\about.html" />
+    <Content Include="templates\home.html" />
     <Content Include="templates\layout.html" />
+    <Content Include="templates\login.html" />
+    <Content Include="templates\register.html" />
   </ItemGroup>
   <ItemGroup>
     <Interpreter Include="env\">

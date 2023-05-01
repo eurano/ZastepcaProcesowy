@@ -19,6 +19,11 @@ app.config['DEBUG'] = True
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 app.config['SECRET_KEY'] = '5791628bb0b13ce0c676dfde280ba245'
 
+# Configure session to use filesystem (instead of signed cookies)
+app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_TYPE"] = "filesystem"
+Session(app)
+
 
 # Configure session to use filesystem (instead of signed cookies)
 
@@ -89,7 +94,6 @@ def register():
         sql = """ SELECT * FROM users WHERE username = %s """
         values = (form.username.data,)
         cursor.execute(sql, values)
-        db.commit()
         rows = cursor.rowcount
         if rows != 0:
             flash('Ta nazwa użytkownika jest zajęta', 'danger')
@@ -123,13 +127,28 @@ def about():
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
+
     form = LoginForm()
+
     if form.validate_on_submit():
-        if form.email.data == 'admin@blog.com' and form.password.data == 'password':
-            flash('You have been logged in!', 'success')
-            return redirect(url_for('home'))
+        # Forget any user_id
+        session.clear()
+
+        # Ensure username exists and password is correct
+        # Query database for username
+        sql = """ SELECT id, username, hash FROM users WHERE username = %s """
+        values = (form.username.data,)
+        cursor.execute(sql, values)
+        rows = cursor.fetchone() # fetchone returns dict, fetchall() returns list
+        if cursor.rowcount != 1 or not check_password_hash(rows[2], form.password.data):
+            flash('Niepoprawny login lub hasło!', 'error')
+            return render_template('login.html', title='Login', form=form)
         else:
-            flash('Login Unsuccessful. Please check username and password', 'danger')
+            # Remember which user has logged in
+            session["user_id"] = rows[0]
+            flash('Jesteś zalogowany', 'success')
+            return redirect(url_for('home'))
+
     return render_template('login.html', title='Login', form=form)
 
 

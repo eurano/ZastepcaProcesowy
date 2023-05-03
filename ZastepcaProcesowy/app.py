@@ -112,14 +112,14 @@ def register():
                 sql =  """ SELECT (id) FROM users WHERE username = %s """
                 values = (form.username.data,)
                 cursor.execute(sql, values)
+
+                # Get new user id
                 rows = cursor.fetchone()
-                print('id: ' + str(rows[0]))
                 user_id = rows[0]
 
                 sql = """ INSERT INTO private_users (name, lastname, email, phone_number, user_id) VALUES (%s,%s,%s,%s,%s) """
                 values = (form.name.data, form.lastname.data, form.email.data, form.phonenumber.data, user_id)
                 cursor.execute(sql, values)
-                db.commit()
 
                 # Add user profession details to database
                 sql = """ INSERT INTO lawyers (profession, region, town, user_id) VALUES (%s,%s,%s,%s) """

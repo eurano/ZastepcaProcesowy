@@ -6,7 +6,7 @@ from datetime import datetime
 from helpers import apology, login_required
 import mysql.connector
 from mysql.connector import Error
-from forms import RegistrationForm, LoginForm
+from forms import RegistrationForm, LoginForm, AdvertisementForm
 
 
 
@@ -78,7 +78,9 @@ posts = [
 
 @app.route("/")
 @app.route("/home")
+@login_required
 def home():
+    userId = session["user_id"]
     return render_template('home.html', posts=posts)
 
 
@@ -143,6 +145,36 @@ def register():
 @app.route("/about")
 def about():
     return render_template('about.html', title='About')
+
+
+
+@app.route("/advertisements")
+@login_required
+def advertisements():
+    userId = session["user_id"]
+    return render_template('advertisements.html', posts=posts)
+
+
+
+
+@app.route("/new-advertisement", methods=['GET', 'POST'])
+@login_required
+def new_advertisement():
+
+
+    # https://nagasudhir.blogspot.com/2022/07/forms-in-flask-with-wtforms.html
+
+    form = AdvertisementForm(request.form)
+
+    if request.method == "POST" and form.validate():
+        print("nazwa =", form.name.data)
+        print("data =", form.start_date.data)
+        print("godzina =", form.hour.data)
+    else:
+        print("dodano")
+
+    return render_template('new-advertisement.html', title='Nowe ogłoszenie', form=form)
+
 
 
 

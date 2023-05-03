@@ -35,9 +35,11 @@
     <Content Include="requirements.txt" />
     <Content Include="static\styles.css" />
     <Content Include="templates\about.html" />
+    <Content Include="templates\advertisements.html" />
     <Content Include="templates\home.html" />
     <Content Include="templates\layout.html" />
     <Content Include="templates\login.html" />
+    <Content Include="templates\new-advertisement.html" />
     <Content Include="templates\register.html" />
   </ItemGroup>
   <ItemGroup>

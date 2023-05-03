@@ -2,5 +2,5 @@ Flask>=1.1
 Flask-Session
 mysql-connector-python~=8.0.5
 Flask-WTF
-wtforms
+WTForms=2.3.3
 email-validator

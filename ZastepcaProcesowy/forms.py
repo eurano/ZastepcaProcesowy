@@ -1,7 +1,10 @@
 ﻿from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, SelectField
+from wtforms import Form, validators, StringField, PasswordField, SubmitField, SelectField, DateTimeField
 from wtforms.validators import DataRequired, Length, Email, EqualTo
-
+from wtforms.fields import html5 as h5fields
+from wtforms.widgets import html5 as h5widgets
+from wtforms.widgets import TextArea
+import wtforms.fields.html5 as html5
 
 class RegistrationForm(FlaskForm):
 
@@ -44,5 +47,17 @@ class LoginForm(FlaskForm):
                         validators=[DataRequired()])
     password = PasswordField('Hasło', validators=[DataRequired()])
     submit = SubmitField('Zaloguj się')
+
+
+
+class AdvertisementForm(Form):
+
+    name = StringField('Nazwa użytkownika',
+                           validators=[DataRequired(), Length(min=2, max=50)])
+
+
+    start_date = html5.DateField("Date Time Sample")
+
+    hour = StringField('Godzina', [validators.data_required(), validators.regexp(r"(^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$)")])
 
 

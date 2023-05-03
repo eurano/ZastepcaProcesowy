@@ -1,0 +1,41 @@
+﻿{% extends "layout.html" %}
+{% block content %}
+<p>Hi, please fill this form</p>
+
+{% macro render_input(field, showErrors="true") %}
+<tr>
+    <td>{{ field.label }}</td>
+    <td>
+        {{ field(**kwargs)|safe }}
+        {% if showErrors=="true" and field.errors %}
+        <ul class="errors">
+            {% for error in field.errors %}
+            <li>Niepoprawny format</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </td>
+</tr>
+{% endmacro %}
+
+<form method="post">
+    <table>
+        {{render_input(form.name)}}
+        {{render_input(form.start_date)}}
+        {{render_input(form.hour)}}
+
+        <tr>
+            <td><button type="submit">Submit</button></td>
+        </tr>
+    </table>
+</form>
+
+<style>
+    .errors {
+        font-size: 0.9em;
+        color: red;
+    }
+</style>
+
+
+{% endblock content %}

@@ -23,15 +23,15 @@
                 {% if session["user_id"] %}
                 <div class="collapse navbar-collapse" id="navbarToggle">
                     <div class="navbar-nav mr-auto">
-                        <a class="nav-item nav-link" href="{{ url_for('home') }}">Home</a>
-                        <a class="nav-item nav-link" href="{{ url_for('logout') }}">Log out</a>
+                        <a class="nav-item nav-link" href="{{ url_for('home') }}">Strona główna</a>
+                        <a class="nav-item nav-link" href="{{ url_for('advertisements') }}">Ogłoszenia</a>
+                        <a class="nav-item nav-link" href="{{ url_for('logout') }}">Wyloguj</a>
                     </div>
                     {% else %}
                     <div class="collapse navbar-collapse" id="navbarToggle">
                         <div class="navbar-nav mr-auto">
-                            <a class="nav-item nav-link" href="{{ url_for('home') }}">Home</a>
-                            <a class="nav-item nav-link" href="{{ url_for('register') }}">Register</a>
-                            <a class="nav-item nav-link" href="{{ url_for('login') }}">Log in</a>                        
+                            <a class="nav-item nav-link" href="{{ url_for('register') }}">Zarejstruj</a>
+                            <a class="nav-item nav-link" href="{{ url_for('login') }}">Zaloguj</a>                        
                         </div>
 
                         {% endif %}

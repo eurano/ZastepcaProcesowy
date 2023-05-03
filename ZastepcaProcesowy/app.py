@@ -85,35 +85,56 @@ def home():
 @app.route("/register", methods=['GET', 'POST'])
 def register():
     form = RegistrationForm()
-    print(form.username.data)
-
+    
     if form.validate_on_submit():
-
-        # Insert new user to DB
-        # Ensure username does not exist
-        sql = """ SELECT * FROM users WHERE username = %s """
-        values = (form.username.data,)
-        cursor.execute(sql, values)
-        rows = cursor.rowcount
-        if rows != 0:
-            flash('Ta nazwa użytkownika jest zajęta', 'danger')
-            return render_template('register.html', title='Register', form=form)
-        else:
-            # Add user to database
-            username = form.username.data
-            now = datetime.now()
-            hash = generate_password_hash(username, method='pbkdf2:sha256', salt_length=8)
-            sql = """ INSERT INTO users (username, created_at, hash, last_active) VALUES (%s,%s,%s,%s) """
-            values = (username, now, hash, now)
+        print(form.username.data)
+        try:
+            # Insert new user to DB
+            # Ensure username does not exist
+            sql = """ SELECT * FROM users WHERE username = %s """
+            values = (form.username.data,)
             cursor.execute(sql, values)
-            db.commit()
-            # Check if DB operation was succesfull
-            if cursor.rowcount != 0:
-                flash('Registration succesful! You can log in now', 'info')
-                return render_template('login.html', title='Login', form=form)
-            else:
-                flash('Konto nie zostało utworzone z powodu błędu', 'error')
+            rows = cursor.rowcount
+            if rows != 0:
+                flash('Ta nazwa użytkownika jest zajęta', 'danger')
                 return render_template('register.html', title='Register', form=form)
+            else:
+                # Add user to database
+                username = form.username.data
+                now = datetime.now()
+                hash = generate_password_hash(username, method='pbkdf2:sha256', salt_length=8)
+                sql = """ INSERT INTO users (username, created_at, hash, last_active) VALUES (%s,%s,%s,%s) """
+                values = (username, now, hash, now)
+                cursor.execute(sql, values)
+                db.commit()
+
+                # Add user personal details to database
+                sql =  """ SELECT (id) FROM users WHERE username = %s """
+                values = (form.username.data,)
+                cursor.execute(sql, values)
+                rows = cursor.fetchone()
+                print('id: ' + str(rows[0]))
+                user_id = rows[0]
+
+                sql = """ INSERT INTO private_users (name, lastname, email, phone_number, user_id) VALUES (%s,%s,%s,%s,%s) """
+                values = (form.name.data, form.lastname.data, form.email.data, form.phonenumber.data, user_id)
+                cursor.execute(sql, values)
+                db.commit()
+
+                # Add user profession details to database
+                sql = """ INSERT INTO lawyers (profession, region, town, user_id) VALUES (%s,%s,%s,%s) """
+                values = (form.profession.data, form.region.data, form.town.data, user_id)
+                cursor.execute(sql, values)
+                db.commit()
+
+                flash('Poprawnie zarejstrowano, możesz się zalogować', 'info')
+                return redirect(url_for('login'))
+
+        # Check if DB operation was succesfull
+        except mysql.connector.Error as error:
+            print("Failed operation MySQL table {}".format(error))
+            flash('Konto nie zostało utworzone z powodu błędu', 'error')
+            return render_template('register.html', title='Register', form=form)
 
     return render_template('register.html', title='Register', form=form)
 
@@ -133,28 +154,42 @@ def login():
     if form.validate_on_submit():
         # Forget any user_id
         session.clear()
+        print(form.username.data)
+        try:
+            # Ensure username exists and password is correct
+            # Query database for username
+            sql = """ SELECT id, username, hash FROM users WHERE username = %s """
+            values = (form.username.data,)
+            cursor.execute(sql, values)
+            rows = cursor.fetchone() # fetchone returns dict, fetchall() returns list
+            if cursor.rowcount != 1 or not check_password_hash(rows[2], form.password.data):
+                flash('Niepoprawny login lub hasło!', 'error')
+                return render_template('login.html', title='Login', form=form)
+            else:
+                # Remember which user has logged in
+                session["user_id"] = rows[0]
+                flash('Jesteś zalogowany', 'success')
+                return redirect(url_for('home'))
 
-        # Ensure username exists and password is correct
-        # Query database for username
-        sql = """ SELECT id, username, hash FROM users WHERE username = %s """
-        values = (form.username.data,)
-        cursor.execute(sql, values)
-        rows = cursor.fetchone() # fetchone returns dict, fetchall() returns list
-        if cursor.rowcount != 1 or not check_password_hash(rows[2], form.password.data):
-            flash('Niepoprawny login lub hasło!', 'error')
+        # Check if DB operation was succesfull
+        except mysql.connector.Error as error:
+            print("Failed operation MySQL table {}".format(error))
+            flash('Wystąpił błąd podczas logowania, spróbuj ponownie', 'error')
             return render_template('login.html', title='Login', form=form)
-        else:
-            # Remember which user has logged in
-            session["user_id"] = rows[0]
-            flash('Jesteś zalogowany', 'success')
-            return redirect(url_for('home'))
 
     return render_template('login.html', title='Login', form=form)
 
 
 
+@app.route("/logout")
+def logout():
+    """Log user out"""
 
+    # Forget any user_id
+    session.clear()
 
+    # Redirect user to login form
+    return redirect("/")
 
 
 

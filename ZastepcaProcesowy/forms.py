@@ -5,6 +5,8 @@ from wtforms.fields import html5 as h5fields
 from wtforms.widgets import html5 as h5widgets
 from wtforms.widgets import TextArea
 import wtforms.fields.html5 as html5
+from wtforms_components import TimeField
+
 
 class RegistrationForm(FlaskForm):
 
@@ -56,8 +58,8 @@ class AdvertisementForm(Form):
                            validators=[DataRequired(), Length(min=2, max=50)])
 
 
-    start_date = html5.DateField("Date Time Sample")
-
-    hour = StringField('Godzina', [validators.data_required(), validators.regexp(r"(^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$)")])
+    start_date = html5.DateField("Date Time Sample", validators=[DataRequired()])
+    start_time = TimeField('Start time', validators=[DataRequired()])
+    
 
 

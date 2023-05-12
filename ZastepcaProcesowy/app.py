@@ -1,9 +1,9 @@
-﻿from flask import Flask, flash, url_for, redirect, render_template, request, session
+﻿from flask import Flask, flash, url_for, redirect, render_template, request, session, jsonify, json
 from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime
-from helpers import apology, login_required
+from helpers import apology, login_required, parse_tuple
 import mysql.connector
 from mysql.connector import Error
 from forms import RegistrationForm, LoginForm, AdvertisementForm
@@ -164,17 +164,120 @@ def new_advertisement():
 
     # https://nagasudhir.blogspot.com/2022/07/forms-in-flask-with-wtforms.html
 
-    form = AdvertisementForm(request.form)
 
-    if request.method == "POST" and form.validate():
-        print("nazwa =", form.name.data)
-        print("data =", form.start_date.data)
-        print("godzina =", form.hour.data)
-    else:
-        print("dodano")
+    # https://tutorial101.blogspot.com/2020/04/python-flask-dynamic-select-box-using.html
+    # https://www.youtube.com/watch?v=75djbw0WGEM&t=538s
 
-    return render_template('new-advertisement.html', title='Nowe ogłoszenie', form=form)
 
+    # https://stackoverflow.com/questions/41232105/populate-wtforms-select-field-using-value-selected-from-previous-field/41246506#41246506
+
+    form = AdvertisementForm(form_name='AdvertisementForm')
+
+    sql = """ SELECT id, town FROM appeals """
+    cursor.execute(sql)
+    rows = cursor.fetchall()
+    # print(rows)
+
+    form.appeal.choices = [(row[0], row[1]) for row in rows]
+    form.court_of_appeal.choices = []
+    form.district_court.choices = []
+    form.district_court_department.choices = []
+    form.regional_court_department.choices = []
+
+    if request.method == 'GET':
+        return render_template('new-advertisement.html', form=form)
+       
+
+    if form.validate_on_submit() and request.form['form_name'] == 'AdvertisementForm':
+       # code to process form
+       print('/TODO')
+       
+
+    return redirect(url_for('new-advertisement'))
+ 
+
+
+
+# This route is is required for populating AdvertisementForm
+@app.route('/_get_court_of_appeal')
+def _get_court_of_appeal():
+
+    appeal = request.args.get('appeal', '01', type=str)
+    # print(tuple(appeal))
+    value = parse_tuple("('%s',)" % appeal)
+
+
+    sql = """ SELECT id, court_of_appeal FROM appeals WHERE id = %s """
+    cursor.execute(sql, value)
+    rows = cursor.fetchall()
+    # print(rows)
+
+    court_of_appeal = [(row[0], row[1]) for row in rows]
+    # print(court_of_appeal)
+    # print(jsonify(court_of_appeal))
+    return jsonify(court_of_appeal)
+
+
+# This route is is required for populating AdvertisementForm
+@app.route('/_get_district_court')
+def _get_district_court():
+
+    court_of_appeal = request.args.get('court_of_appeal', '01', type=str)
+    # print(tuple(court_of_appeal))
+    value = parse_tuple("('%s',)" % court_of_appeal)
+
+
+    sql = """ SELECT id, court FROM district_courts WHERE appeal_id = %s """
+    cursor.execute(sql, value)
+    rows = cursor.fetchall()
+    # print(rows)
+
+    district_court = [(row[0], row[1]) for row in rows]
+    # print(district_court)
+    # print(jsonify(district_court))
+    return jsonify(district_court)
+
+
+
+# This route is is required for populating AdvertisementForm
+@app.route('/_get_district_court_department')
+def _get_district_court_department():
+
+    district_court = request.args.get('district_court', '01', type=str)
+    print(tuple(district_court))
+    value = parse_tuple("('%s',)" % district_court)
+
+
+    sql = """ SELECT id, department FROM district_court_departments WHERE district_court_id = %s """
+    cursor.execute(sql, value)
+    rows = cursor.fetchall()
+    print(rows)
+
+    district_court_department = [(row[0], row[1]) for row in rows]
+    print(district_court_department)
+    print(jsonify(district_court_department))
+    return jsonify(district_court_department)
+
+
+
+# This route is is required for populating AdvertisementForm
+@app.route('/_get_regional_court_department')
+def _get_regional_court_department():
+
+    district_court_department = request.args.get('district_court_department', '01', type=str)
+    print(tuple(district_court_department))
+    value = parse_tuple("('%s',)" % district_court_department)
+
+
+    sql = """ SELECT id, department FROM regional_courts WHERE district_court_departm_id = %s """
+    cursor.execute(sql, value)
+    rows = cursor.fetchall()
+    print(rows)
+
+    regional_court_department = [(row[0], row[1]) for row in rows]
+    print(regional_court_department)
+    print(jsonify(regional_court_department))
+    return jsonify(regional_court_department)
 
 
 

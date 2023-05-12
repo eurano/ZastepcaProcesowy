@@ -1,5 +1,18 @@
 from flask import redirect, render_template, session
 from functools import wraps
+import ast
+
+
+
+def parse_tuple(string):
+    try:
+        s = ast.literal_eval(str(string))
+        if type(s) == tuple:
+            return s
+        return
+    except:
+        return
+
 
 
 def apology(message, code=400):
@@ -15,6 +28,8 @@ def apology(message, code=400):
             s = s.replace(old, new)
         return s
     return render_template("apology.html", top=code, bottom=escape(message)), code
+
+
 
 
 def login_required(f):

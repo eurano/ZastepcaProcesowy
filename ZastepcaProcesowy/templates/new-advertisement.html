@@ -1,6 +1,9 @@
 ﻿{% extends "layout.html" %}
 {% block content %}
-<p>Hi, please fill this form</p>
+
+<p>Korzystając z poniższego formularza możesz wprowadzić do systemu nowe zastępstwo, 
+   które będzie widoczne dla innych użytkowników systemu.
+   Będą oni mogli je zobaczyć, przeczytać jego opis i zgłosić się do wykonania.</p>
 
 {% macro render_input(field, showErrors="true") %}
 <tr>
@@ -23,7 +26,14 @@
         {{render_input(form.name)}}
         {{render_input(form.start_date)}}
         {{render_input(form.start_time)}}
-
+        {{render_input(form.advertisement_type)}}
+        {{render_input(form.appeal)}}
+        {{render_input(form.court_of_appeal)}}
+        {{render_input(form.district_court)}}
+        {{render_input(form.district_court_department)}}
+        {{render_input(form.regional_court_department)}}
+        {{render_input(form.file_review)}}
+        {{render_input(form.contact_method)}}
         <tr>
             <td><button type="submit">Submit</button></td>
         </tr>
@@ -37,5 +47,171 @@
     }
 </style>
 
+
+<script charset="utf-8" type="text/javascript">
+
+
+$(function() {
+
+    // jQuery selection for the select boxes
+    var court_of_appeal_dropdown = {
+        appeal: $('#select_appeal'),
+        court_of_appeal: $('#select_court_of_appeal')
+    };
+
+    var district_court_dropdown = {
+        court_of_appeal: $('#select_court_of_appeal'),
+        district_court: $('#select_district_court')
+    }
+
+    var district_court_department_dropdown = {
+        district_court: $('#select_district_court'),
+        district_court_department: $('#select_district_court_department')
+    }
+
+    var regional_court_department_dropdown = {
+        district_court_department: $('#select_district_court_department'),
+        regional_court_department: $('#select_regional_court_department')
+    }
+
+    // call to update on load
+    updateCourtsOfAppeal();
+    // hide unnecessary fields on load
+    $('#select_district_court_department').hide()
+    $('#select_regional_court_department').hide()
+
+    // function to call XHR and update court_of_appeal_dropdown
+    function updateCourtsOfAppeal() {
+        var send = {
+            appeal: court_of_appeal_dropdown.appeal.val()
+        };
+        court_of_appeal_dropdown.court_of_appeal.attr('disabled', 'disabled');
+        court_of_appeal_dropdown.court_of_appeal.empty();
+        $.getJSON("{{ url_for('_get_court_of_appeal') }}", send, function(data) {
+            data.forEach(function (item) {
+                //alert(item);
+                //console.log(item[0])
+                //console.log(item[1])
+                court_of_appeal_dropdown.court_of_appeal.append(
+                    $('<option>', {
+                        value: item[0],
+                        text: item[1]
+                    })
+                );
+             });
+            court_of_appeal_dropdown.court_of_appeal.removeAttr('disabled');
+            updateDistrictCourts();
+        });
+    }
+
+    // function to call XHR and update district_court_dropdown
+    function updateDistrictCourts() {
+        var send = {
+            court_of_appeal: district_court_dropdown.court_of_appeal.val()
+        };
+        district_court_dropdown.district_court.attr('disabled', 'disabled');
+        district_court_dropdown.district_court.empty();
+        $.getJSON("{{ url_for('_get_district_court') }}", send, function (data) {
+            data.forEach(function (item) {
+                //alert(item);
+                //console.log(item[0])
+                //console.log(item[1])
+                district_court_dropdown.district_court.append(
+                    $('<option>', {
+                        value: item[0],
+                        text: item[1]
+                    })
+                );
+            });
+            district_court_dropdown.district_court.removeAttr('disabled');
+        });
+    }
+
+    // function to call XHR and update district_court_department_dropdown
+
+    function updateDistrictCourtDepartments() {
+        var send = {
+            district_court: district_court_department_dropdown.district_court.val()
+        };
+        district_court_department_dropdown.district_court_department.attr('disabled', 'disabled');
+        district_court_department_dropdown.district_court_department.empty();
+        $.getJSON("{{ url_for('_get_district_court_department') }}", send, function (data) {
+            // check if data set is empty
+            if (data.length) {
+                // if we have data
+                $('#select_district_court_department').show()
+                data.forEach(function (item) {
+                console.log(item[0])
+                console.log(item[1])
+                district_court_department_dropdown.district_court_department.append(
+                    $('<option>', {
+                        value: item[0],
+                        text: item[1]
+                    })
+                    );
+                });
+                district_court_department_dropdown.district_court_department.removeAttr('disabled');   
+            }
+            else {
+                // we don't have data, hide unnecessary fields
+                $('#select_district_court_department').hide();
+                $('#select_regional_court_department').hide()
+            }
+        });
+    }
+
+    // function to call XHR and update regional_court_department_dropdown
+
+    function updateRegionalCourtDepartments() {
+        var send = {
+            district_court_department: regional_court_department_dropdown.district_court_department.val()
+        };
+        regional_court_department_dropdown.regional_court_department.attr('disabled', 'disabled');
+        regional_court_department_dropdown.regional_court_department.empty();
+        $.getJSON("{{ url_for('_get_regional_court_department') }}", send, function (data) {
+            // check if data set is empty, if not unhide field
+            if (data.length) {
+                $('#select_regional_court_department').show()
+                data.forEach(function (item) {
+                    console.log(item[0])
+                    console.log(item[1])
+                    regional_court_department_dropdown.regional_court_department.append(
+                        $('<option>', {
+                            value: item[0],
+                            text: item[1]
+                        })
+                    );
+                });
+                regional_court_department_dropdown.regional_court_department.removeAttr('disabled');
+            }
+        });
+    }
+
+    // event listener to state 'select_appeal' court_of_appeal_dropdown change
+    court_of_appeal_dropdown.appeal.on('change', function () {
+        // hide unnecessary fields
+        updateCourtsOfAppeal();
+        district_court_department_dropdown.district_court_department.attr('disabled', 'disabled');
+        district_court_department_dropdown.district_court_department.empty();
+        regional_court_department_dropdown.regional_court_department.attr('disabled', 'disabled');
+        regional_court_department_dropdown.regional_court_department.empty();
+        $('#select_district_court_department').hide();
+        $('#select_regional_court_department').hide()
+    });
+
+     // event listener to state 'district_court' district_court_dropdown change
+    district_court_dropdown.district_court.on('change', function () {
+    
+    updateDistrictCourtDepartments()
+    });  
+
+    // event listener to state 'district_court_department' district_court_department_dropdown change
+    district_court_department_dropdown.district_court_department.on('change', function () {
+    
+    updateRegionalCourtDepartments()
+    });  
+});
+
+</script>
 
 {% endblock content %}

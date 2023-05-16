@@ -161,39 +161,124 @@ def advertisements():
 @login_required
 def new_advertisement():
 
-
-    # https://nagasudhir.blogspot.com/2022/07/forms-in-flask-with-wtforms.html
-
-
-    # https://tutorial101.blogspot.com/2020/04/python-flask-dynamic-select-box-using.html
-    # https://www.youtube.com/watch?v=75djbw0WGEM&t=538s
-
-
     # https://stackoverflow.com/questions/41232105/populate-wtforms-select-field-using-value-selected-from-previous-field/41246506#41246506
 
+    userId = session["user_id"]
+
     form = AdvertisementForm(form_name='AdvertisementForm')
+
+    # fill dropdowns with all possible choices otherwise wtforms validation will fail
 
     sql = """ SELECT id, town FROM appeals """
     cursor.execute(sql)
     rows = cursor.fetchall()
-    # print(rows)
 
-    form.appeal.choices = [(row[0], row[1]) for row in rows]
-    form.court_of_appeal.choices = []
-    form.district_court.choices = []
-    form.district_court_department.choices = []
-    form.regional_court_department.choices = []
+    form.appeal.choices = [(0, "---")]+[(row[0], row[1]) for row in rows]
 
-    if request.method == 'GET':
-        return render_template('new-advertisement.html', form=form)
+    sql = """ SELECT id, court_of_appeal FROM appeals """
+    cursor.execute(sql)
+    rows = cursor.fetchall()
+    print(rows)
+
+    form.court_of_appeal.choices = [(0, "---")]+[(row[0], row[1]) for row in rows]
+
+    sql = """ SELECT id, court FROM district_courts """
+    cursor.execute(sql)
+    rows = cursor.fetchall()
+
+    form.district_court.choices = [(0, "---")]+[(row[0], row[1]) for row in rows]
+
+    sql = """ SELECT id, department FROM district_court_departments """
+    cursor.execute(sql)
+    rows = cursor.fetchall()
+
+    form.district_court_department.choices = [(0, "---")]+[(row[0], row[1]) for row in rows]
+    
+    sql = """ SELECT id, department FROM regional_courts """
+    cursor.execute(sql)
+    rows = cursor.fetchall()
+
+    form.regional_court_department.choices = [(0, "---")]+[(row[0], row[1]) for row in rows]
        
 
-    if form.validate_on_submit() and request.form['form_name'] == 'AdvertisementForm':
+    if form.validate_on_submit(): 
+       #and request.form['form_name'] == 'AdvertisementForm':
        # code to process form
-       print('/TODO')
-       
 
-    return redirect(url_for('new-advertisement'))
+       # get choosen location
+       location = ''
+       courtsData = {}
+       choosen_court = ''
+
+       keys_to_add = [form.appeal.name, form.court_of_appeal.name, form.district_court.name,
+                     form.district_court_department.name, form.regional_court_department.name] 
+       vals_to_add = [form.appeal.data, form.court_of_appeal.data, form.district_court.data,
+                     form.district_court_department.data, form.regional_court_department.data]
+       
+       for key, val in zip(keys_to_add, vals_to_add): 
+           courtsData[key] = val 
+
+       for key, value in courtsData.items():
+           if value is None:
+            continue
+           if value > 0:
+            # print(key)
+            # print(value)
+            choosen_court = key
+       
+       for field in form:
+           if field.name == choosen_court:
+               print(dict(field.choices).get(field.data))
+               location = dict(field.choices).get(field.data)  # VARCHAR NOT NULL sprawdzić w bazie jak max długi 
+       
+       appeal = None                            # INT NULL
+       court_of_appeal = None                   # INT NULL
+       district_court = None                    # INT NULL
+       district_court_department = None         # INT NULL
+       regional_court_department = None         # INT NULL
+
+       # get choosen appeal
+       if form.appeal.data != None:
+           if form.appeal.data != 0:
+               appeal = form.appeal.data
+
+       # get choosen court_of appeal
+       if form.court_of_appeal.data != None:
+           if form.court_of_appeal.data != 0:
+               court_of_appeal = form.court_of_appeal.data
+
+       # get choosen district court
+       if form.district_court.data != None:
+           if form.district_court.data != 0:
+               district_court = form.district_court.data
+
+       # get choosen district court department
+       if form.district_court_department.data != None:
+           if form.district_court_department.data != 0:
+               district_court_department = form.district_court_department.data
+
+       # get choosen regional court department
+       if form.regional_court_department.data != None:
+           if form.regional_court_department.data != 0:
+               regional_court_department = form.regional_court_department.data
+        
+       
+       print(form.file_review.data)  # INT NOT NULL
+       print(form.salary.data)       # TAK JAK W SKLEP_DB ALE MOŻE BYĆ NULL
+       print(form.duration.data)     # INT NOT NULL
+       print(form.title.data)        # VARCHAR(50) NOT NULL
+       print(form.start_date.data)   # DATE NOT NULL
+       print(form.start_time.data)   # TIME NOT NULL
+       print(form.order_type.data)   # ARRAY [1, 2] NOT NULL
+       print(form.address.data)      # VARCHAR(150) NOT NULL
+       print(form.description.data)  # VARCHAR(255) NOT NULL
+       print(userId)                 # VARCHAR(50) NOT NULL
+
+       flash('Ogłoszenie dodane', 'info')
+       return redirect(url_for('advertisements'))
+
+
+    return render_template('new-advertisement.html', form=form)
  
 
 
@@ -212,7 +297,7 @@ def _get_court_of_appeal():
     rows = cursor.fetchall()
     # print(rows)
 
-    court_of_appeal = [(row[0], row[1]) for row in rows]
+    court_of_appeal = [(0, "---")]+[(row[0], row[1]) for row in rows]
     # print(court_of_appeal)
     # print(jsonify(court_of_appeal))
     return jsonify(court_of_appeal)
@@ -232,7 +317,7 @@ def _get_district_court():
     rows = cursor.fetchall()
     # print(rows)
 
-    district_court = [(row[0], row[1]) for row in rows]
+    district_court = [(0, "---")]+[(row[0], row[1]) for row in rows]
     # print(district_court)
     # print(jsonify(district_court))
     return jsonify(district_court)
@@ -253,7 +338,7 @@ def _get_district_court_department():
     rows = cursor.fetchall()
     print(rows)
 
-    district_court_department = [(row[0], row[1]) for row in rows]
+    district_court_department = [(0, "---")]+[(row[0], row[1]) for row in rows]
     print(district_court_department)
     print(jsonify(district_court_department))
     return jsonify(district_court_department)
@@ -274,7 +359,7 @@ def _get_regional_court_department():
     rows = cursor.fetchall()
     print(rows)
 
-    regional_court_department = [(row[0], row[1]) for row in rows]
+    regional_court_department = [(0, "---")]+[(row[0], row[1]) for row in rows]
     print(regional_court_department)
     print(jsonify(regional_court_department))
     return jsonify(regional_court_department)

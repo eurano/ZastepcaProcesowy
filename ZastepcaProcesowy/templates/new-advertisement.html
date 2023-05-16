@@ -1,51 +1,253 @@
 ﻿{% extends "layout.html" %}
 {% block content %}
 
-<p>Korzystając z poniższego formularza możesz wprowadzić do systemu nowe zastępstwo, 
-   które będzie widoczne dla innych użytkowników systemu.
-   Będą oni mogli je zobaczyć, przeczytać jego opis i zgłosić się do wykonania.</p>
+<div class="content-section">
+    <form method="POST" action="">
+        {{ form.hidden_tag() }}
+        <fieldset class="form-group">
+            <legend class="border-bottom mb-4">
+                Korzystając z poniższego formularza możesz wprowadzić do systemu nowe zastępstwo,
+                które będzie widoczne dla innych użytkowników systemu.
+                Będą oni mogli je zobaczyć, przeczytać jego opis i zgłosić się do wykonania.
+            </legend>
 
-{% macro render_input(field, showErrors="true") %}
-<tr>
-    <td>{{ field.label }}</td>
-    <td>
-        {{ field(**kwargs)|safe }}
-        {% if showErrors=="true" and field.errors %}
-        <ul class="errors">
-            {% for error in field.errors %}
-            <li>Niepoprawny format</li>
-            {% endfor %}
-        </ul>
-        {% endif %}
-    </td>
-</tr>
-{% endmacro %}
 
-<form method="post">
-    <table>
-        {{render_input(form.name)}}
-        {{render_input(form.start_date)}}
-        {{render_input(form.start_time)}}
-        {{render_input(form.advertisement_type)}}
-        {{render_input(form.appeal)}}
-        {{render_input(form.court_of_appeal)}}
-        {{render_input(form.district_court)}}
-        {{render_input(form.district_court_department)}}
-        {{render_input(form.regional_court_department)}}
-        {{render_input(form.file_review)}}
-        {{render_input(form.contact_method)}}
-        <tr>
-            <td><button type="submit">Submit</button></td>
-        </tr>
-    </table>
-</form>
+            <div class="form-group">
+                {{ form.title.label(class="form-control-label") }}
+                {% if form.title.errors %}
+                {{ form.title(class="form-control form-control-lg is-invalid") }}
+                <div class="invalid-feedback">
+                    {% for error in form.title.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.title(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
 
-<style>
-    .errors {
-        font-size: 0.9em;
-        color: red;
-    }
-</style>
+            <div class="form-group">
+                {{ form.start_date.label(class="form-control-label") }}
+                {% if form.start_date.errors %}
+                {{ form.start_date(class="form-control form-control-lg is-invalid") }}
+                <div class="invalid-feedback">
+                    {% for error in form.start_date.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.start_date(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+
+
+            <div class="form-group">
+                {{ form.start_time.label(class="form-control-label") }}
+                {% if form.start_time.errors %}
+                {{ form.start_time(class="form-control form-control-lg is-invalid") }}
+                <div class="invalid-feedback">
+                    {% for error in form.start_time.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.start_time(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+
+
+
+            <p> Lokalizacja </p>
+
+            <div class="form-group">
+                {{ form.appeal.label(class="form-control-label") }}
+                {% if form.appeal.errors %}
+                {{ form.appeal(class="form-control form-control-lg is-invalid") }}
+                <div class="invalid-feedback">
+                    {% for error in form.appeal.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.appeal(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.court_of_appeal.label(class="form-control-label") }}
+                {% if form.court_of_appeal.errors %}
+                {{ form.court_of_appeal(class="form-control form-control-lg is-invalid") }}
+                <div class="invalid-feedback">
+                    {% for error in form.court_of_appeal.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.court_of_appeal(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.district_court.label(class="form-control-label") }}
+                {% if form.district_court.errors %}
+                {{ form.district_court(class="form-control form-control-lg is-invalid") }}
+                <div class="invalid-feedback">
+                    {% for error in form.district_court.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.district_court(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.district_court_department.label(class="form-control-label") }}
+                {% if form.district_court_department.errors %}
+                {{ form.district_court_department(class="form-control form-control-lg is-invalid") }}
+                <div class="invalid-feedback">
+                    {% for error in form.district_court_department.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.district_court_department(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.regional_court_department.label(class="form-control-label") }}
+                {% if form.regional_court_department.errors %}
+                {{ form.regional_court_department(class="form-control form-control-lg is-invalid") }}
+                <div class="invalid-feedback">
+                    {% for error in form.regional_court_department.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.regional_court_department(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.advertisement_type.label(class="form-control-label") }}
+                {% if form.advertisement_type.errors %}
+                {{ form.advertisement_type(class="form-control form-control-lg is-invalid") }}
+                <div class="invalid-feedback">
+                    {% for error in form.advertisement_type.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.advertisement_type(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.contact_method.label(class="form-control-label") }}
+                {% if form.contact_method.errors %}
+                {{ form.contact_method(class="form-control form-control-lg is-invalid") }}
+                <div class="invalid-feedback">
+                    {% for error in form.contact_method.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.contact_method(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.file_review.label(class="form-control-label") }}
+                {% if form.file_review.errors %}
+                {{ form.file_review(class="form-control form-control-lg is-invalid") }}
+                <div class="invalid-feedback">
+                    {% for error in form.file_review.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.file_review(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.salary.label(class="form-control-label") }}
+                {% if form.salary.errors %}
+                {{ form.salary(class="form-control form-control-lg is-invalid") }}
+                <div class="invalid-feedback">
+                    {% for error in form.salary.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.salary(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.duration.label(class="form-control-label") }}
+                {% if form.duration.errors %}
+                {{ form.duration(class="form-control form-control-lg is-invalid") }}
+                <div class="invalid-feedback">
+                    {% for error in form.duration.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.duration(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.order_type.label(class="form-control-label") }}
+                {% if form.order_type.errors %}
+                {{ form.order_type(class="form-control form-control-lg is-invalid") }}
+                <div class="invalid-feedback">
+                    {% for error in form.order_type.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.order_type(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.address.label(class="form-control-label") }}
+                {% if form.address.errors %}
+                {{ form.address(class="form-control form-control-lg is-invalid") }}
+                <div class="invalid-feedback">
+                    {% for error in form.address.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.address(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.description.label(class="form-control-label") }}
+                {% if form.description.errors %}
+                {{ form.description(class="form-control form-control-lg is-invalid") }}
+                <div class="invalid-feedback">
+                    {% for error in form.description.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.description(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+
+            
+        </fieldset>
+        <div class="form-group">
+            {{ form.submit(class="btn btn-outline-info") }}
+        </div>
+    </form>
+</div>
 
 
 <script charset="utf-8" type="text/javascript">
@@ -53,7 +255,7 @@
 
 $(function() {
 
-    // jQuery selection for the select boxes
+    // jQuery selection for the select location boxes
     var court_of_appeal_dropdown = {
         appeal: $('#select_appeal'),
         court_of_appeal: $('#select_court_of_appeal')
@@ -74,11 +276,13 @@ $(function() {
         regional_court_department: $('#select_regional_court_department')
     }
 
-    // call to update on load
-    updateCourtsOfAppeal();
+
     // hide unnecessary fields on load
+    $('#select_court_of_appeal').hide()
+    $('#select_district_court').hide()
     $('#select_district_court_department').hide()
     $('#select_regional_court_department').hide()
+
 
     // function to call XHR and update court_of_appeal_dropdown
     function updateCourtsOfAppeal() {
@@ -87,8 +291,19 @@ $(function() {
         };
         court_of_appeal_dropdown.court_of_appeal.attr('disabled', 'disabled');
         court_of_appeal_dropdown.court_of_appeal.empty();
-        $.getJSON("{{ url_for('_get_court_of_appeal') }}", send, function(data) {
-            data.forEach(function (item) {
+        district_court_dropdown.district_court.attr('disabled', 'disabled');
+        district_court_dropdown.district_court.empty();
+        district_court_department_dropdown.district_court_department.attr('disabled', 'disabled');
+        district_court_department_dropdown.district_court_department.empty();
+        regional_court_department_dropdown.regional_court_department.attr('disabled', 'disabled');
+        regional_court_department_dropdown.regional_court_department.empty();
+        $('#select_district_court').hide();
+        $('#select_district_court_department').hide();
+        $('#select_regional_court_department').hide();
+        $.getJSON("{{ url_for('_get_court_of_appeal') }}", send, function (data) {
+            // check if data set is empty
+            if (data.length > 1) {
+                data.forEach(function (item) {
                 //alert(item);
                 //console.log(item[0])
                 //console.log(item[1])
@@ -98,9 +313,17 @@ $(function() {
                         text: item[1]
                     })
                 );
-             });
-            court_of_appeal_dropdown.court_of_appeal.removeAttr('disabled');
-            updateDistrictCourts();
+                });
+                court_of_appeal_dropdown.court_of_appeal.removeAttr('disabled');
+                $('#select_court_of_appeal').show();
+            }
+            else {
+                // we don't have data, hide unnecessary fields
+                $('#select_court_of_appeal').hide();
+                $('#select_district_court').hide();
+                $('#select_district_court_department').hide();
+                $('#select_regional_court_department').hide()
+            }
         });
     }
 
@@ -112,18 +335,28 @@ $(function() {
         district_court_dropdown.district_court.attr('disabled', 'disabled');
         district_court_dropdown.district_court.empty();
         $.getJSON("{{ url_for('_get_district_court') }}", send, function (data) {
-            data.forEach(function (item) {
-                //alert(item);
-                //console.log(item[0])
-                //console.log(item[1])
-                district_court_dropdown.district_court.append(
-                    $('<option>', {
-                        value: item[0],
-                        text: item[1]
-                    })
-                );
-            });
-            district_court_dropdown.district_court.removeAttr('disabled');
+            // check if data set is empty
+            if (data.length > 1) {
+                // if we have data
+                data.forEach(function (item) {
+                    console.log(item[0])
+                    console.log(item[1])
+                    district_court_dropdown.district_court.append(
+                        $('<option>', {
+                            value: item[0],
+                            text: item[1]
+                        })
+                    );
+                });
+                district_court_dropdown.district_court.removeAttr('disabled');
+                $('#select_district_court').show()
+            }
+            else {
+                // we don't have data, hide unnecessary fields
+                $('#select_district_court').hide();
+                $('#select_district_court_department').hide();
+                $('#select_regional_court_department').hide()
+            }
         });
     }
 
@@ -137,9 +370,8 @@ $(function() {
         district_court_department_dropdown.district_court_department.empty();
         $.getJSON("{{ url_for('_get_district_court_department') }}", send, function (data) {
             // check if data set is empty
-            if (data.length) {
+            if (data.length > 1) {
                 // if we have data
-                $('#select_district_court_department').show()
                 data.forEach(function (item) {
                 console.log(item[0])
                 console.log(item[1])
@@ -150,7 +382,8 @@ $(function() {
                     })
                     );
                 });
-                district_court_department_dropdown.district_court_department.removeAttr('disabled');   
+                district_court_department_dropdown.district_court_department.removeAttr('disabled');
+                $('#select_district_court_department').show()
             }
             else {
                 // we don't have data, hide unnecessary fields
@@ -170,8 +403,7 @@ $(function() {
         regional_court_department_dropdown.regional_court_department.empty();
         $.getJSON("{{ url_for('_get_regional_court_department') }}", send, function (data) {
             // check if data set is empty, if not unhide field
-            if (data.length) {
-                $('#select_regional_court_department').show()
+            if (data.length > 1) {   
                 data.forEach(function (item) {
                     console.log(item[0])
                     console.log(item[1])
@@ -183,34 +415,50 @@ $(function() {
                     );
                 });
                 regional_court_department_dropdown.regional_court_department.removeAttr('disabled');
+                $('#select_regional_court_department').show()
+            }
+            else {
+                // we don't have data, hide unnecessary fields
+                $('#select_regional_court_department').hide()
             }
         });
     }
 
-    // event listener to state 'select_appeal' court_of_appeal_dropdown change
+    // event listener to state 'select_appeal' court_of_appeal_dropdown appeal field change
     court_of_appeal_dropdown.appeal.on('change', function () {
+        // remove validator error message if any
+        elm = document.getElementById("select_appeal");
+        if (elm.getAttribute("class") == "form-control form-control-lg is-invalid")
+            elm.setAttribute("class", "form-control form-control-lg")
+
         // hide unnecessary fields
         updateCourtsOfAppeal();
-        district_court_department_dropdown.district_court_department.attr('disabled', 'disabled');
-        district_court_department_dropdown.district_court_department.empty();
-        regional_court_department_dropdown.regional_court_department.attr('disabled', 'disabled');
-        regional_court_department_dropdown.regional_court_department.empty();
-        $('#select_district_court_department').hide();
-        $('#select_regional_court_department').hide()
+
+
+       
     });
 
+
+    // event listener to state 'select_appeal' court_of_appeal_dropdown court_of_appeal change
+    court_of_appeal_dropdown.court_of_appeal.on('change', function () {
+        updateDistrictCourts()
+    });
+
+
+
      // event listener to state 'district_court' district_court_dropdown change
-    district_court_dropdown.district_court.on('change', function () {
-    
+    district_court_department_dropdown.district_court.on('change', function () {
+
     updateDistrictCourtDepartments()
-    });  
+    });
 
     // event listener to state 'district_court_department' district_court_department_dropdown change
     district_court_department_dropdown.district_court_department.on('change', function () {
-    
+
     updateRegionalCourtDepartments()
-    });  
+    });
 });
+
 
 </script>
 

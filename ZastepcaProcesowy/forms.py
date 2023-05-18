@@ -55,17 +55,15 @@ class RegistrationForm(FlaskForm):
     phonenumber = StringField('Numer telefonu',
                         validators=[DataRequired(), Length(min=8, max=12)])
 
-    # TODO do zmiany na (1, "Adwokat") itd.... W BAZIE DANYCH TEŻ ZMIENIĆ NA INT POLE !!!!!!!!!!!!!
 
-    profession = SelectField(u'Zawód', choices=[(None, ''), ("Adwokat", "Adwokat"), ("Radca prawny", "Radca prawny"), ("Rzecznik patentowy", "Rzecznik patentowy"),
-                                               ("Aplikant adwokacki", "Aplikant adwokacki"), ("Aplikant radcowski", "Aplikant radcowski"), ("Aplikant rzecznikowski",
-                                                "Aplikant rzecznikowski"), ("inne", "inne")], validators=[DataRequired()])
+    profession = SelectField(u'Zawód', choices=[(None, ''), (1, "Adwokat"), (2, "Radca prawny"), (3, "Rzecznik patentowy"),
+                                               (4, "Aplikant adwokacki"), (5, "Aplikant radcowski"), (6,
+                                                "Aplikant rzecznikowski"), (7, "inne")], validators=[DataRequired()])
 
-    # TODO do zmiany na (1, "Warszawa") itd.... W BAZIE DANYCH TEŻ ZMIENIĆ NA INT POLE !!!!!!!!!!!!!!!
-
-    region = SelectField(u'Apelacja', choices=[(None, ''), ("Warszawa", "Warszawa"), ("Białystok", "Białystok"), ("Poznań", "Poznań"), ("Gdańsk", "Gdańsk"),
-                                              ("Szczecin", "Szczecin"), ("Łódź", "Łódź"), ("Katowice", "Katowice"), ("Wrocław", "Wrocław"), ("Kraków", "Kraków"),
-                                              ("Lublin", "Lublin"), ("Rzeszów", "Rzeszów")], validators=[DataRequired()])                                   
+    
+    region = SelectField(u'Apelacja', choices=[(None, ''), (1, "Warszawa"), (2, "Białystok"), (3, "Poznań"), (4, "Gdańsk"),
+                                              (5, "Szczecin"), (6, "Łódź"), (7, "Katowice"), (8, "Wrocław"), (9, "Kraków"),
+                                              (10, "Lublin"), (11, "Rzeszów")], validators=[DataRequired()])                                   
     town = StringField('Miasto',
                               validators=[DataRequired(), Length(min=2, max=30)])
 
@@ -79,14 +77,14 @@ class RegistrationForm(FlaskForm):
 
 
 def get_order_types():
-    return [(1, 'Prawo cywilne'), (2, 'Prawo karne'), (3, 'Prawo handlowe'), (4, 'Mandarin'), (5, 'Prawo administracyjne'), (6, 'Prawo finansowe'),
-           (7, 'Prawo gospodarcze'), (8, 'Prawo autorskie'), (9, 'Prawo bankowe'), (10, 'Prawo pracy'), (11, 'Prawo konstytucyjne i ustrojowe'),
-           (12, 'Prawo międzynarodowe'), (13, 'Prawo Unii Europejskiej'), (14, 'Nieruchomości'), (14, 'Prawo własności intelektualnej'),
-           (15, 'Prawo własności przemysłowej'), (15, 'Zamówienia publiczne'), (16, 'Prawo drogowe'), (17, 'inne')]
+    return [(1, 'Prawo cywilne'), (2, 'Prawo karne'), (3, 'Prawo handlowe'), (4, 'Prawo administracyjne'), (5, 'Prawo finansowe'), (6, 'Prawo gospodarcze'),
+           (7, 'Prawo autorskie'), (8, 'Prawo bankowe'), (9, 'Prawo pracy'), (10, 'Prawo konstytucyjne i ustrojowe'), (11, 'Prawo międzynarodowe'),
+           (12, 'Prawo Unii Europejskiej'), (13, 'Nieruchomości'), (14, 'Prawo własności intelektualnej'), (14, 'Prawo własności przemysłowej'),
+           (15, 'Zamówienia publiczne'), (15, 'Prawo drogowe'), (16, 'inne')]
 
 
 class MultiCheckboxField(SelectMultipleField):
-    widget = widgets.ListWidget(html_tag='ol', prefix_label=False)
+    widget = widgets.ListWidget(html_tag='ol', prefix_label=True)
     option_widget = widgets.CheckboxInput()
 
 
@@ -99,6 +97,7 @@ class MultiCheckboxAtLeastOne():
     def __call__(self, form, field):
         if len(field.data) == 0:
             raise StopValidation(self.message)
+
 
 
 
@@ -128,7 +127,7 @@ class AdvertisementForm(FlaskForm):
     regional_court_department = SelectField('', choices=[("", "---")], coerce=int, validators=[Optional()], id='select_regional_court_department')
 
 
-    file_review = SelectField('Wymagane przejrzenia akt', choices=[("", "---"), (1, "Tak"), (2, "Nie")], validators=[DataRequired()])
+    file_review = SelectField('Wymagane przejrzenia akt', choices=[("", "---"), (0, "Nie"), (1, "Tak")], validators=[DataRequired()])
 
     contact_method = SelectField('Preferowany kontakt', choices=[("", "---"), (1, "Telefoniczny"), (2, "E-mail"), 
                                                                  (3, "Osobisty")], validators=[DataRequired()])
@@ -141,13 +140,10 @@ class AdvertisementForm(FlaskForm):
 
     description = TextAreaField('Opis', validators=[DataRequired(), Length(min=10, max=255)]) 
 
-    order_type = MultiCheckboxField('Rodzaj zlecenia', choices=get_order_types(), validators=[MultiCheckboxAtLeastOne()], coerce=int)
+    order_type = MultiCheckboxField('Rodzaj zlecenia', choices=get_order_types(), validators=[MultiCheckboxAtLeastOne()],
+                                   coerce=int, id='order_type', render_kw={'style': 'height: fit-content; list-style: none;'})
 
     submit = SubmitField('Dodaj')
-
-
-
-
 
     
 

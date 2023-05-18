@@ -11,7 +11,6 @@
                 Będą oni mogli je zobaczyć, przeczytać jego opis i zgłosić się do wykonania.
             </legend>
 
-
             <div class="form-group">
                 {{ form.title.label(class="form-control-label") }}
                 {% if form.title.errors %}
@@ -54,8 +53,6 @@
                 {{ form.start_time(class="form-control form-control-lg") }}
                 {% endif %}
             </div>
-
-
 
             <p> Lokalizacja </p>
 
@@ -241,7 +238,14 @@
                 {% endif %}
             </div>
 
-            
+            <div class="input-wrapper">
+                <div>
+                    Tagi <br />
+                    <input type="text" name="tags" value="" />
+                    <a href="#" onclick="return false;" class="add-input" title="Add input"><img src="/static/plus-square.svg" /></a>
+                </div>
+            </div>
+
         </fieldset>
         <div class="form-group">
             {{ form.submit(class="btn btn-outline-info") }}
@@ -457,8 +461,28 @@ $(function() {
 
     updateRegionalCourtDepartments()
     });
+
 });
 
+// script to add or remove tags
+ $(document).ready(function () {
+    var max_input_fields = 3;
+    var add_input = $('.add-input');
+    var input_wrapper = $('.input-wrapper');
+     var new_input = '<div><input type="text" name="tags" value=""/><a href="#" onclick="return false;;" class="remove-input" title="Remove input"><img src="/static/minus-square.svg"/></a></div>';
+    var add_input_count = 1;
+    $(add_input).click(function () {
+        if (add_input_count < max_input_fields) {
+            add_input_count++;
+            $(input_wrapper).append(new_input);
+        }
+    });
+    $(input_wrapper).on('click', '.remove-input', function (e) {
+        e.preventDefault();
+        $(this).parent('div').remove();
+        add_input_count--;
+    });
+ });
 
 </script>
 

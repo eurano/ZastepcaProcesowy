@@ -33,6 +33,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="requirements.txt" />
+    <Content Include="static\minus-square.svg" />
+    <Content Include="static\plus-square.svg" />
     <Content Include="static\styles.css" />
     <Content Include="templates\about.html" />
     <Content Include="templates\advertisements.html" />

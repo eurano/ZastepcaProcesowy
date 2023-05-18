@@ -95,3 +95,22 @@ a.article-title:hover {
     padding: 1px 15px 3px 2px;
     border-radius: 50px;
 }
+
+
+
+/* input field do tagów */
+.input-wrapper div {
+    margin-bottom: 10px;
+}
+
+.remove-input {
+    margin-top: 10px;
+    margin-left: 15px;
+    vertical-align: text-bottom;
+}
+
+.add-input {
+    margin-top: 10px;
+    margin-left: 10px;
+    vertical-align: text-bottom;
+}

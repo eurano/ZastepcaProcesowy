@@ -229,13 +229,13 @@ def new_advertisement():
        for field in form:
            if field.name == choosen_court:
                print(dict(field.choices).get(field.data))
-               location = dict(field.choices).get(field.data)  # VARCHAR NOT NULL sprawdzić w bazie jak max długi 
+               location = dict(field.choices).get(field.data)  # VARCHAR(120) NOT NULL sprawdzić w bazie jak max długi 
        
-       appeal = None                            # INT NULL
-       court_of_appeal = None                   # INT NULL
-       district_court = None                    # INT NULL
-       district_court_department = None         # INT NULL
-       regional_court_department = None         # INT NULL
+       appeal = None                            # INT(1) NULL
+       court_of_appeal = None                   # INT(1) NULL
+       district_court = None                    # INT(2) NULL
+       district_court_department = None         # INT(2) NULL
+       regional_court_department = None         # INT(2) NULL
 
        # get choosen appeal
        if form.appeal.data != None:
@@ -263,19 +263,52 @@ def new_advertisement():
                regional_court_department = form.regional_court_department.data
         
        
-       print(form.file_review.data)  # INT NOT NULL
-       print(form.salary.data)       # TAK JAK W SKLEP_DB ALE MOŻE BYĆ NULL
-       print(form.duration.data)     # INT NOT NULL
-       print(form.title.data)        # VARCHAR(50) NOT NULL
-       print(form.start_date.data)   # DATE NOT NULL
-       print(form.start_time.data)   # TIME NOT NULL
-       print(form.order_type.data)   # ARRAY [1, 2] NOT NULL
-       print(form.address.data)      # VARCHAR(150) NOT NULL
-       print(form.description.data)  # VARCHAR(255) NOT NULL
-       print(userId)                 # VARCHAR(50) NOT NULL
+       skills = request.form.getlist('tags')
+       for value in skills:  
+            print([value])
+            # cur.execute("INSERT INTO tags (skillname) VALUES (%s)",[value])
+            # conn.commit() 
+       
+       print(form.title.data)                               # VARCHAR(50) NOT NULL
+       print(form.start_date.data)                          # DATE NOT NULL
+       print(form.start_time.data)                          # TIME NOT NULL
+       print(form.duration.data)                            # INT(2) NOT NULL
+       print(form.salary.data)                              # DECIMAL(10, 2) NULL
+       print(form.address.data)                             # VARCHAR(150) NOT NULL
+       print(form.order_type.data)                          # JSON NOT NULL
+       print(form.file_review.data)                         # BOOLEAN NOT NULL
+       print(form.description.data)                         # VARCHAR(255) NOT NULL
+       print(json.dumps(request.form.getlist('tags')))      # JSON NULL
+       print(userId)                                        # VARCHAR(50) NOT NULL
 
-       flash('Ogłoszenie dodane', 'info')
-       return redirect(url_for('advertisements'))
+       # insert advertisement data to database
+       try:
+           sql = """ INSERT INTO advertisements (title, start_date, start_time, duration, salary,
+                location, address, order_type, file_review, description, tags, date_of_publication,
+                user_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) """
+
+           values = (form.title.data, form.start_date.data, form.start_time.data, form.duration.data, form.salary.data,
+                    location, form.address.data, json.dumps(form.order_type.data), form.file_review.data, form.description.data,
+                    json.dumps(request.form.getlist('tags')), datetime.now(), userId)
+
+           cursor.execute(sql, values)
+           db.commit()
+
+
+           # Get new advertisment id
+           # rows = cursor.fetchone()
+           # advertisement_id = rows[0]
+
+
+
+           flash('Ogłoszenie dodane', 'info')
+           return redirect(url_for('advertisements'))
+
+       # Check if DB operation was succesfull
+       except mysql.connector.Error as error:
+           print("Failed operation MySQL table {}".format(error))
+           flash('Ogłoszenie nie zostało dodane z powodu błędu', 'error')
+           return render_template('new-advertisement.html', form=form)
 
 
     return render_template('new-advertisement.html', form=form)

@@ -303,34 +303,34 @@ def new_advertisement():
            # add tags to database
            # Toxi solution http://howto.philippkeller.com/2005/04/24/Tags-Database-schemas/
            tags = request.form.getlist('tags')
-           print(tags)
-           for tag in tags:
-               print(tag)
-               # prevent inserting duplicated tags
-               sql = """ INSERT INTO tags (name) VALUES (%s) ON DUPLICATE KEY UPDATE tag_id=tag_id """
-               value = parse_tuple("('%s',)" % tag)
-               cursor.execute(sql, value)
-               db.commit()
-
-               # Get new tag id
-               tag_id = None
-               tag_id = cursor.lastrowid
-               print(tag_id)
-               
-               if (tag_id == 0): #23000 error handler (when tag already exist)
-                   print('if sie odpala')
-                   sql = """ SELECT tag_id FROM tags WHERE name = %s """
+           # check if user added any tag
+           if (tags != ['']):
+               print(tags)
+               for tag in tags:
+                   print(tag)
+                   # prevent inserting duplicated tags
+                   sql = """ INSERT INTO tags (name) VALUES (%s) ON DUPLICATE KEY UPDATE tag_id=tag_id """
+                   value = parse_tuple("('%s',)" % tag)
                    cursor.execute(sql, value)
-                   rows = cursor.fetchone()
-                   tag_id = rows[0]
-            
-               sql = """ INSERT INTO tagmap (advertisement_id, tag_id) VALUES (%s, %s) """
-               values = (advertisement_id, tag_id)
-               cursor.execute(sql, values)
-               db.commit()
+                   db.commit()
+
+                   # Get new tag id
+                   tag_id = None
+                   tag_id = cursor.lastrowid
+                   print(tag_id)
                
-
-
+                   if (tag_id == 0): #23000 error handler (when tag already exist)
+                       print('if sie odpala')
+                       sql = """ SELECT tag_id FROM tags WHERE name = %s """
+                       cursor.execute(sql, value)
+                       rows = cursor.fetchone()
+                       tag_id = rows[0]
+            
+                   sql = """ INSERT INTO tagmap (advertisement_id, tag_id) VALUES (%s, %s) """
+                   values = (advertisement_id, tag_id)
+                   cursor.execute(sql, values)
+                   db.commit()
+               
            flash('Ogłoszenie dodane', 'info')
            return redirect(url_for('advertisements'))
 

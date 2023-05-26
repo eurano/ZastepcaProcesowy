@@ -1,4 +1,5 @@
-﻿from flask import Flask, flash, url_for, redirect, render_template, request, session, jsonify, json
+﻿from asyncio.windows_events import NULL
+from flask import Flask, flash, url_for, redirect, render_template, request, session, jsonify, json
 from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -278,27 +279,56 @@ def new_advertisement():
        print(form.order_type.data)                          # JSON NOT NULL
        print(form.file_review.data)                         # BOOLEAN NOT NULL
        print(form.description.data)                         # VARCHAR(255) NOT NULL
-       print(json.dumps(request.form.getlist('tags')))      # JSON NULL
+       print(request.form.getlist('tags'))                  
        print(userId)                                        # VARCHAR(50) NOT NULL
 
        # insert advertisement data to database
-       try:
+
+       
+       try:         
            sql = """ INSERT INTO advertisements (title, start_date, start_time, duration, salary,
-                location, address, order_type, file_review, description, tags, date_of_publication,
+                location, address, order_type, file_review, description, date_of_publication, status,
                 user_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) """
 
            values = (form.title.data, form.start_date.data, form.start_time.data, form.duration.data, form.salary.data,
                     location, form.address.data, json.dumps(form.order_type.data), form.file_review.data, form.description.data,
-                    json.dumps(request.form.getlist('tags')), datetime.now(), userId)
+                    datetime.now(), 'ACTIVE', userId)
 
            cursor.execute(sql, values)
            db.commit()
-
-
+           
            # Get new advertisment id
-           # rows = cursor.fetchone()
-           # advertisement_id = rows[0]
+           advertisement_id = cursor.lastrowid
 
+           # add tags to database
+           # Toxi solution http://howto.philippkeller.com/2005/04/24/Tags-Database-schemas/
+           tags = request.form.getlist('tags')
+           print(tags)
+           for tag in tags:
+               print(tag)
+               # prevent inserting duplicated tags
+               sql = """ INSERT INTO tags (name) VALUES (%s) ON DUPLICATE KEY UPDATE tag_id=tag_id """
+               value = parse_tuple("('%s',)" % tag)
+               cursor.execute(sql, value)
+               db.commit()
+
+               # Get new tag id
+               tag_id = None
+               tag_id = cursor.lastrowid
+               print(tag_id)
+               
+               if (tag_id == 0): #23000 error handler (when tag already exist)
+                   print('if sie odpala')
+                   sql = """ SELECT tag_id FROM tags WHERE name = %s """
+                   cursor.execute(sql, value)
+                   rows = cursor.fetchone()
+                   tag_id = rows[0]
+            
+               sql = """ INSERT INTO tagmap (advertisement_id, tag_id) VALUES (%s, %s) """
+               values = (advertisement_id, tag_id)
+               cursor.execute(sql, values)
+               db.commit()
+               
 
 
            flash('Ogłoszenie dodane', 'info')

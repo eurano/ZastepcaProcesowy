@@ -1,12 +1,13 @@
 ﻿from flask_wtf import FlaskForm
 from wtforms import TextAreaField, StringField, DecimalField, PasswordField, SubmitField, SelectField, widgets
-from wtforms.validators import DataRequired, Optional, Length, Email, EqualTo, StopValidation, InputRequired
+from wtforms.validators import DataRequired, Optional, Length, Email, EqualTo, StopValidation, ValidationError
 import wtforms.fields.html5 as html5
 from wtforms.widgets import html5 as h5widgets
 from wtforms_components import TimeField
 from wtforms.fields import SelectMultipleField
 import decimal
 from decimal import Decimal
+import datetime
 
 
 class BetterDecimalField(DecimalField):
@@ -113,6 +114,9 @@ class LoginForm(FlaskForm):
 
 class AdvertisementForm(FlaskForm):
 
+    def validate_start_date(form, field):
+        if field.data < datetime.date.today():
+            raise ValidationError("Data nie może być z przeszłości!")
 
     title = StringField('Tytuł ogłoszenia', validators=[DataRequired(), Length(min=2, max=50)]) 
     start_date = html5.DateField('Data rozpoczęcia', validators=[DataRequired()]) 

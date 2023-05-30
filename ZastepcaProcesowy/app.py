@@ -1,13 +1,12 @@
-﻿from asyncio.windows_events import NULL
-from flask import Flask, flash, url_for, redirect, render_template, request, session, jsonify, json
+﻿from flask import Flask, flash, url_for, redirect, render_template, request, session, jsonify
 from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime
-from helpers import apology, login_required, parse_tuple
+from helpers import login_required, parse_tuple, pln
 import mysql.connector
 from mysql.connector import Error
-from forms import RegistrationForm, LoginForm, AdvertisementForm
+from forms import RegistrationForm, LoginForm, AdvertisementForm, BidForm
 
 
 
@@ -26,19 +25,16 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
 
-# Configure session to use filesystem (instead of signed cookies)
-
-#app.config["SESSION_PERMANENT"] = False
-#app.config["SESSION_TYPE"] = "filesystem"
-#Session(app)
-
-
 # Make the WSGI interface available at the top level so wfastcgi can get it.
 #wsgi_app = app.wsgi_app
 
 
 # Ensure templates are auto-reloaded
 app.config["TEMPLATES_AUTO_RELOAD"] = True
+
+# Custom filter
+app.jinja_env.filters["pln"] = pln
+
 
 # Connect to MySQL
 try:
@@ -58,23 +54,7 @@ except Error as e:
 cursor = db.cursor()
 cursor = db.cursor(prepared=True)
 cursor = db.cursor(buffered=True)
-
-
-posts = [
-    {
-        'author': 'Corey Schafer',
-        'title': 'Blog Post 1',
-        'content': 'First post content',
-        'date_posted': 'April 20, 2018'
-    },
-    {
-        'author': 'Jane Doe',
-        'title': 'Blog Post 2',
-        'content': 'Second post content',
-        'date_posted': 'April 21, 2018'
-    }
-]
-
+cursor = db.cursor(dictionary=True)
 
 
 @app.route("/")
@@ -82,7 +62,7 @@ posts = [
 @login_required
 def home():
     userId = session["user_id"]
-    return render_template('home.html', posts=posts)
+    return render_template('home.html')
 
 
 @app.route("/register", methods=['GET', 'POST'])
@@ -118,7 +98,7 @@ def register():
 
                 # Get new user id
                 rows = cursor.fetchone()
-                user_id = rows[0]
+                user_id = rows['id']
 
                 sql = """ INSERT INTO private_users (name, lastname, email, phone_number, user_id) VALUES (%s,%s,%s,%s,%s) """
                 values = (form.name.data, form.lastname.data, form.email.data, form.phonenumber.data, user_id)
@@ -143,6 +123,7 @@ def register():
 
 
 
+
 @app.route("/about")
 def about():
     return render_template('about.html', title='About')
@@ -152,10 +133,63 @@ def about():
 @app.route("/advertisements")
 @login_required
 def advertisements():
+
     userId = session["user_id"]
-    return render_template('advertisements.html', posts=posts)
+
+    try:
+        sql = """ SELECT advertisements.id, title, start_date, start_time, duration, salary, location, address, file_review, invoice, description, date_of_publication, username,
+              group_concat(tags.name) AS tags FROM advertisements LEFT JOIN tagmap ON advertisements.id=tagmap.advertisement_id LEFT JOIN tags ON tagmap.tag_id=tags.tag_id JOIN users ON advertisements.user_id=users.id GROUP BY advertisements.id """
+        cursor.execute(sql)
+        advertisements = cursor.fetchall()
+        print(advertisements)
 
 
+    except mysql.connector.Error as error:
+           print("Failed operation MySQL table {}".format(error))
+
+    return render_template('advertisements.html', advertisements=advertisements)
+    #return render_template('advertisements.html', posts=posts)
+
+
+
+@app.route("/advertisement-details/<string:id>", methods=['GET', 'POST'])
+@login_required
+def advertisement_details(id):
+
+    form = BidForm()
+
+    print(id)
+    username = session["username"]
+
+    try:
+        sql = """ SELECT advertisements.id, title, start_date, start_time, duration, salary, location, address, file_review, invoice, description, date_of_publication, username,
+       group_concat(DISTINCT tags.name) AS tags, group_concat(DISTINCT order_types.name) AS order_types FROM advertisements LEFT JOIN tagmap ON advertisements.id=tagmap.advertisement_id LEFT JOIN tags ON tagmap.tag_id=tags.tag_id LEFT JOIN order_type_map ON advertisements.id=order_type_map.advertisement_id LEFT JOIN order_types ON order_type_map.type_id=order_types.type_id JOIN users ON advertisements.user_id=users.id WHERE (advertisements.id = %s) GROUP BY advertisements.id """
+        values = (id,)
+        cursor.execute(sql, values)
+        details = cursor.fetchall()
+        print(details)
+
+
+    except mysql.connector.Error as error:
+        print("Failed operation MySQL table {}".format(error))
+
+
+    return render_template('advertisement-details.html', details=details, username=username, form=form)
+
+
+@app.route("/delete-advertisement", methods=['POST'])
+@login_required
+def delete_advertisement():
+
+    print(request.form['id'])
+    sql = """ DELETE FROM advertisements WHERE id = %s """
+    values = (request.form['id'],)
+    cursor.execute(sql, values)
+
+
+    flash('Ogłoszenie usunięte', 'info')
+
+    return redirect(url_for('advertisements'))
 
 
 @app.route("/new-advertisement", methods=['GET', 'POST'])
@@ -174,32 +208,32 @@ def new_advertisement():
     cursor.execute(sql)
     rows = cursor.fetchall()
 
-    form.appeal.choices = [(0, "---")]+[(row[0], row[1]) for row in rows]
+    form.appeal.choices = [(0, "---")]+[(row['id'], row['town']) for row in rows]
 
     sql = """ SELECT id, court_of_appeal FROM appeals """
     cursor.execute(sql)
     rows = cursor.fetchall()
     print(rows)
 
-    form.court_of_appeal.choices = [(0, "---")]+[(row[0], row[1]) for row in rows]
+    form.court_of_appeal.choices = [(0, "---")]+[(row['id'], row['court_of_appeal']) for row in rows]
 
     sql = """ SELECT id, court FROM district_courts """
     cursor.execute(sql)
     rows = cursor.fetchall()
 
-    form.district_court.choices = [(0, "---")]+[(row[0], row[1]) for row in rows]
+    form.district_court.choices = [(0, "---")]+[(row['id'], row['court']) for row in rows]
 
     sql = """ SELECT id, department FROM district_court_departments """
     cursor.execute(sql)
     rows = cursor.fetchall()
 
-    form.district_court_department.choices = [(0, "---")]+[(row[0], row[1]) for row in rows]
+    form.district_court_department.choices = [(0, "---")]+[(row['id'], row['department']) for row in rows]
     
     sql = """ SELECT id, department FROM regional_courts """
     cursor.execute(sql)
     rows = cursor.fetchall()
 
-    form.regional_court_department.choices = [(0, "---")]+[(row[0], row[1]) for row in rows]
+    form.regional_court_department.choices = [(0, "---")]+[(row['id'], row['department']) for row in rows]
        
 
     if form.validate_on_submit(): 
@@ -263,35 +297,23 @@ def new_advertisement():
            if form.regional_court_department.data != 0:
                regional_court_department = form.regional_court_department.data
         
-       
-       skills = request.form.getlist('tags')
-       for value in skills:  
-            print([value])
-            # cur.execute("INSERT INTO tags (skillname) VALUES (%s)",[value])
-            # conn.commit() 
-       
-       print(form.title.data)                               # VARCHAR(50) NOT NULL
-       print(form.start_date.data)                          # DATE NOT NULL
-       print(form.start_time.data)                          # TIME NOT NULL
-       print(form.duration.data)                            # INT(2) NOT NULL
-       print(form.salary.data)                              # DECIMAL(10, 2) NULL
-       print(form.address.data)                             # VARCHAR(150) NOT NULL
-       print(form.order_type.data)                          # JSON NOT NULL
-       print(form.file_review.data)                         # BOOLEAN NOT NULL
-       print(form.description.data)                         # VARCHAR(255) NOT NULL
-       print(request.form.getlist('tags'))                  
-       print(userId)                                        # VARCHAR(50) NOT NULL
+
+
+       # // TODO DODAĆ DANE LOKALIZACJI SĄDÓW DO BAZY !!!
+            
+
 
        # insert advertisement data to database
-
-       
        try:         
+
+           # TODO search bar https://tutorial101.blogspot.com/2021/01/jquery-ajax-python-flask-and-mysql.html
+
            sql = """ INSERT INTO advertisements (title, start_date, start_time, duration, salary,
-                location, address, order_type, file_review, description, date_of_publication, status,
+                location, address, file_review, invoice, description, date_of_publication, status,
                 user_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) """
 
            values = (form.title.data, form.start_date.data, form.start_time.data, form.duration.data, form.salary.data,
-                    location, form.address.data, json.dumps(form.order_type.data), form.file_review.data, form.description.data,
+                    location, form.address.data, form.file_review.data, form.invoice.data, form.description.data,
                     datetime.now(), 'ACTIVE', userId)
 
            cursor.execute(sql, values)
@@ -309,7 +331,7 @@ def new_advertisement():
                for tag in tags:
                    print(tag)
                    # prevent inserting duplicated tags
-                   sql = """ INSERT INTO tags (name) VALUES (%s) ON DUPLICATE KEY UPDATE tag_id=tag_id """
+                   sql = """ INSERT INTO tags (name) VALUES (%s) ON DUPLICATE KEY UPDATE name=name """
                    value = parse_tuple("('%s',)" % tag)
                    cursor.execute(sql, value)
                    db.commit()
@@ -324,13 +346,26 @@ def new_advertisement():
                        sql = """ SELECT tag_id FROM tags WHERE name = %s """
                        cursor.execute(sql, value)
                        rows = cursor.fetchone()
-                       tag_id = rows[0]
+                       tag_id = rows['tag_id']
             
                    sql = """ INSERT INTO tagmap (advertisement_id, tag_id) VALUES (%s, %s) """
                    values = (advertisement_id, tag_id)
                    cursor.execute(sql, values)
                    db.commit()
-               
+
+           # add order types to DB - array table solution https://dba.stackexchange.com/questions/252554/storing-arrays-in-mysql
+           order_types = form.order_type.data
+           # check if user selected any type
+           if (order_types != ['']):
+               print(order_types)
+               for order_type in order_types:
+                   print(order_type)
+
+                   sql = """ INSERT INTO order_type_map (advertisement_id, type_id) VALUES (%s, %s) """
+                   values = (advertisement_id, order_type)
+                   cursor.execute(sql, values)
+                   db.commit()
+
            flash('Ogłoszenie dodane', 'info')
            return redirect(url_for('advertisements'))
 
@@ -346,12 +381,12 @@ def new_advertisement():
 
 
 
-# This route is is required for populating AdvertisementForm
+# This route is required for populating AdvertisementForm
 @app.route('/_get_court_of_appeal')
 def _get_court_of_appeal():
 
     appeal = request.args.get('appeal', '01', type=str)
-    # print(tuple(appeal))
+    print(tuple(appeal))
     value = parse_tuple("('%s',)" % appeal)
 
 
@@ -360,13 +395,13 @@ def _get_court_of_appeal():
     rows = cursor.fetchall()
     # print(rows)
 
-    court_of_appeal = [(0, "---")]+[(row[0], row[1]) for row in rows]
-    # print(court_of_appeal)
-    # print(jsonify(court_of_appeal))
+    court_of_appeal = [(0, "---")]+[(row['id'], row['court_of_appeal']) for row in rows]
+    print(court_of_appeal)
+    print(jsonify(court_of_appeal))
     return jsonify(court_of_appeal)
 
 
-# This route is is required for populating AdvertisementForm
+# This route is required for populating AdvertisementForm
 @app.route('/_get_district_court')
 def _get_district_court():
 
@@ -380,14 +415,14 @@ def _get_district_court():
     rows = cursor.fetchall()
     # print(rows)
 
-    district_court = [(0, "---")]+[(row[0], row[1]) for row in rows]
+    district_court = [(0, "---")]+[(row['id'], row['court']) for row in rows]
     # print(district_court)
     # print(jsonify(district_court))
     return jsonify(district_court)
 
 
 
-# This route is is required for populating AdvertisementForm
+# This route is required for populating AdvertisementForm
 @app.route('/_get_district_court_department')
 def _get_district_court_department():
 
@@ -401,7 +436,7 @@ def _get_district_court_department():
     rows = cursor.fetchall()
     print(rows)
 
-    district_court_department = [(0, "---")]+[(row[0], row[1]) for row in rows]
+    district_court_department = [(0, "---")]+[(row['id'], row['department']) for row in rows]
     print(district_court_department)
     print(jsonify(district_court_department))
     return jsonify(district_court_department)
@@ -422,7 +457,7 @@ def _get_regional_court_department():
     rows = cursor.fetchall()
     print(rows)
 
-    regional_court_department = [(0, "---")]+[(row[0], row[1]) for row in rows]
+    regional_court_department = [(0, "---")]+[(row['id'], row['department']) for row in rows]
     print(regional_court_department)
     print(jsonify(regional_court_department))
     return jsonify(regional_court_department)
@@ -445,12 +480,13 @@ def login():
             values = (form.username.data,)
             cursor.execute(sql, values)
             rows = cursor.fetchone() # fetchone returns dict, fetchall() returns list
-            if cursor.rowcount != 1 or not check_password_hash(rows[2], form.password.data):
+            if cursor.rowcount != 1 or not check_password_hash(rows['hash'], form.password.data):
                 flash('Niepoprawny login lub hasło!', 'error')
                 return render_template('login.html', title='Login', form=form)
             else:
                 # Remember which user has logged in
-                session["user_id"] = rows[0]
+                session["user_id"] = rows['id']
+                session["username"] = rows['username']
                 flash('Jesteś zalogowany', 'success')
                 return redirect(url_for('home'))
 
@@ -473,16 +509,6 @@ def logout():
 
     # Redirect user to login form
     return redirect("/")
-
-
-
-
-
-
-
-
-
-
 
 
 

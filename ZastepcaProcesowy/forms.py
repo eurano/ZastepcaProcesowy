@@ -80,8 +80,8 @@ class RegistrationForm(FlaskForm):
 def get_order_types():
     return [(1, 'Prawo cywilne'), (2, 'Prawo karne'), (3, 'Prawo handlowe'), (4, 'Prawo administracyjne'), (5, 'Prawo finansowe'), (6, 'Prawo gospodarcze'),
            (7, 'Prawo autorskie'), (8, 'Prawo bankowe'), (9, 'Prawo pracy'), (10, 'Prawo konstytucyjne i ustrojowe'), (11, 'Prawo międzynarodowe'),
-           (12, 'Prawo Unii Europejskiej'), (13, 'Nieruchomości'), (14, 'Prawo własności intelektualnej'), (14, 'Prawo własności przemysłowej'),
-           (15, 'Zamówienia publiczne'), (15, 'Prawo drogowe'), (16, 'inne')]
+           (12, 'Prawo Unii Europejskiej'), (13, 'Nieruchomości'), (14, 'Prawo własności intelektualnej'), (15, 'Prawo własności przemysłowej'),
+           (16, 'Zamówienia publiczne'), (17, 'Prawo drogowe'), (18, 'inne')]
 
 
 class MultiCheckboxField(SelectMultipleField):
@@ -100,13 +100,16 @@ class MultiCheckboxAtLeastOne():
             raise StopValidation(self.message)
 
 
+class BidForm(FlaskForm):
+    bid = BetterDecimalField('Stawka', round_always=True)
+    submit = SubmitField('Przedstaw ofertę')
 
 
 class LoginForm(FlaskForm):
 
 
     username = StringField('Nazwa użytkownika',
-                        validators=[DataRequired()])
+                        validators=[DataRequired()], render_kw={'autofocus': True})
     password = PasswordField('Hasło', validators=[DataRequired()])
     submit = SubmitField('Zaloguj się')
 
@@ -132,6 +135,8 @@ class AdvertisementForm(FlaskForm):
 
 
     file_review = SelectField('Wymagane przejrzenia akt', choices=[("", "---"), (0, "Nie"), (1, "Tak")], validators=[DataRequired()])
+
+    invoice = SelectField('Wymagane faktura', choices=[("", "---"), (0, "Nie"), (1, "Tak")], validators=[DataRequired()])
 
     contact_method = SelectField('Preferowany kontakt', choices=[("", "---"), (1, "Telefoniczny"), (2, "E-mail"), 
                                                                  (3, "Osobisty")], validators=[DataRequired()])

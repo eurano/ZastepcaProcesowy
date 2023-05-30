@@ -37,6 +37,7 @@
     <Content Include="static\plus-square.svg" />
     <Content Include="static\styles.css" />
     <Content Include="templates\about.html" />
+    <Content Include="templates\advertisement-details.html" />
     <Content Include="templates\advertisements.html" />
     <Content Include="templates\home.html" />
     <Content Include="templates\layout.html" />

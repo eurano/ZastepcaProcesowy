@@ -1,7 +1,14 @@
-from flask import redirect, render_template, session
+from flask import redirect, session
 from functools import wraps
 import ast
+import locale
 
+
+
+def pln(value):
+    locale.setlocale(locale.LC_ALL, "pl_PL.UTF-8")
+    """Format value as PLN."""
+    return (locale.currency(value, grouping=True))
 
 
 def parse_tuple(string):
@@ -12,25 +19,7 @@ def parse_tuple(string):
         return
     except:
         return
-
-
-
-def apology(message, code=400):
-    """Render message as an apology to user."""
-    def escape(s):
-        """
-        Escape special characters.
-
-        https://github.com/jacebrowning/memegen#special-characters
-        """
-        for old, new in [("-", "--"), (" ", "-"), ("_", "__"), ("?", "~q"),
-                         ("%", "~p"), ("#", "~h"), ("/", "~s"), ("\"", "''")]:
-            s = s.replace(old, new)
-        return s
-    return render_template("apology.html", top=code, bottom=escape(message)), code
-
-
-
+        
 
 def login_required(f):
     """

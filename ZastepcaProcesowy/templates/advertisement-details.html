@@ -86,14 +86,15 @@
         {% set userName = detail['username'] %}
 
         {% if username == userName %}
-        <form action="{{ url_for('delete_advertisement') }}" method="post" class="btn btn-info">
+        <form action="{{ url_for('delete_advertisement') }}" method="post">
             <input type="hidden" name="id" value="{{ detail['advertisements.id'] }}">
-            <input type="submit" value="Zamknij ogłoszenie"></form>
+            <input type="submit" class="btn btn-primary" value="Zamknij ogłoszenie"></form>
         {% else %}
         <button type="button" class="btn btn-info" id="bidButton">Zaproponuj stawkę</button>
 
-        <form method="POST" action="" id="bidForm">
-            {{ form.hidden_tag() }}
+        {% set adv_id = detail['id'] %}
+        <form method="POST" action="{{ url_for('insert_bid') }}" id="bidForm">
+            {{ form.csrf_token }}
             <fieldset class="form-group">
                 <legend class="border-bottom mb-4">
                     Podaj proponowaną stawkę
@@ -113,10 +114,15 @@
                     {% endif %}
                 </div>
 
+
+                {{ form.adv_id(value=adv_id) }}
+
+
             </fieldset>
             <div class="form-group">
                 {{ form.submit(class="btn btn-outline-info") }}
             </div>
+
         </form>
 
         {% endif %}

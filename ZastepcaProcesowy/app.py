@@ -2,7 +2,7 @@
 from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.security import check_password_hash, generate_password_hash
-from datetime import datetime
+from datetime import datetime, date  
 from helpers import login_required, parse_tuple, pln
 import mysql.connector
 from mysql.connector import Error
@@ -181,15 +181,48 @@ def advertisement_details(id):
 @login_required
 def delete_advertisement():
 
-    print(request.form['id'])
-    sql = """ DELETE FROM advertisements WHERE id = %s """
-    values = (request.form['id'],)
-    cursor.execute(sql, values)
+    try:
+        print(request.form['id'])
+        sql = """ DELETE FROM advertisements WHERE id = %s """
+        values = (request.form['id'],)
+        cursor.execute(sql, values)
+
+        flash('Ogłoszenie usunięte', 'info')
+        return redirect(url_for('advertisements'))
+
+    except mysql.connector.Error as error:
+        print("Failed operation MySQL table {}".format(error))
+
+        flash('Ogłoszenie nie zostało usunięte z powodu błędu', 'error')
+
+        return redirect(url_for('advertisements'))
 
 
-    flash('Ogłoszenie usunięte', 'info')
+@app.route("/insert-bid", methods=['POST'])
+@login_required
+def insert_bid():
 
-    return redirect(url_for('advertisements'))
+    form = BidForm()
+
+    bid = form.bid.data
+    adv_id = form.adv_id.data
+    print(bid)
+    print(adv_id)
+
+    try:
+        sql = """ INSERT INTO bids (adv_id, bidder_id, bid, date, status) VALUES (%s,%s,%s,%s,%s) """
+        values = (adv_id, session["user_id"], bid, date.today().isoformat(), 'ACTIVE')
+        cursor.execute(sql, values)
+        db.commit()
+
+        flash('Oferta została wysłana', 'info')
+        return redirect(url_for('advertisements'))
+
+    except mysql.connector.Error as error:
+        print("Failed operation MySQL table {}".format(error))
+
+        flash('Oferta nie została wysłana z powodu błędu', 'error')
+        return redirect(url_for('advertisements'))
 
 
 @app.route("/new-advertisement", methods=['GET', 'POST'])

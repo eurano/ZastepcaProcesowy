@@ -1,5 +1,5 @@
 ﻿from flask_wtf import FlaskForm
-from wtforms import TextAreaField, StringField, DecimalField, PasswordField, SubmitField, SelectField, widgets
+from wtforms import HiddenField, TextAreaField, StringField, DecimalField, PasswordField, SubmitField, SelectField, widgets
 from wtforms.validators import DataRequired, Optional, Length, Email, EqualTo, StopValidation, ValidationError
 import wtforms.fields.html5 as html5
 from wtforms.widgets import html5 as h5widgets
@@ -102,8 +102,8 @@ class MultiCheckboxAtLeastOne():
 
 class BidForm(FlaskForm):
     bid = BetterDecimalField('Stawka', round_always=True)
-    submit = SubmitField('Przedstaw ofertę')
-
+    adv_id = HiddenField()
+    submit = SubmitField('Wyślij ofertę')
 
 class LoginForm(FlaskForm):
 

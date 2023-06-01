@@ -7,72 +7,72 @@
         <div class="article-metadata">
 
             {% for detail in details %}
-            <h2><a class="article-title"> {{ detail['title'] }}</a></h2>
-            <p class="font-weight-bold">Data publikacji:</p>
-            <p>{{ detail['date_of_publication'] }}</p>
-            <p class="font-weight-bold">Ogłaszający:</p>
-            <p>{{ detail['username'] }}</p>
-            <p class="font-weight-bold">Data rozpoczęcia:</p>
-            <p>{{ detail['start_date'] }}</p>
-            <p class="font-weight-bold">Godzina rozpoczęcia:</p>
-            <p>{{ detail['start_time'] }}</p>
-            <p class="font-weight-bold">Ilość godzin:</p>
-            <p>{{ detail['duration'] }}</p>
-            <p class="font-weight-bold">Adres:</p>
-            <p>{{ detail['address'] }}</p>
-            <p class="font-weight-bold">Lokalizacja:</p>
-            <p>{{ detail['location'] }}</p>
+                <h2><a class="article-title"> {{ detail['title'] }}</a></h2>
+                <p class="font-weight-bold">Data publikacji:</p>
+                <p>{{ detail['date_of_publication'] }}</p>
+                <p class="font-weight-bold">Ogłaszający:</p>
+                <p>{{ detail['username'] }}</p>
+                <p class="font-weight-bold">Data rozpoczęcia:</p>
+                <p>{{ detail['start_date'] }}</p>
+                <p class="font-weight-bold">Godzina rozpoczęcia:</p>
+                <p>{{ detail['start_time'] }}</p>
+                <p class="font-weight-bold">Ilość godzin:</p>
+                <p>{{ detail['duration'] }}</p>
+                <p class="font-weight-bold">Adres:</p>
+                <p>{{ detail['address'] }}</p>
+                <p class="font-weight-bold">Lokalizacja:</p>
+                <p>{{ detail['location'] }}</p>
 
             {% set order_types = detail['file_review'] %}
 
             <p class="font-weight-bold">Wymagane przejrzenie akt:</p>
             {% if order_types == 1 %}
-            <p>Tak</p>
+                <p>Tak</p>
             {% else %}
-            <p>Nie</p>
+                <p>Nie</p>
             {% endif %}
 
             {% set invoice = detail['invoice'] %}
 
             <p class="font-weight-bold">Wymagana faktura:</p>
             {% if invoice == 1 %}
-            <p>Tak</p>
+                <p>Tak</p>
             {% else %}
-            <p>Nie</p>
+                <p>Nie</p>
             {% endif %}
 
 
             {% set salary = detail['salary'] %}
 
             {% if salary is not none %}
-            <p class="font-weight-bold">Wynagrodzenie</p>
-            <p>{{ detail['salary'] | pln }}</p>
+                <p class="font-weight-bold">Wynagrodzenie</p>
+                <p>{{ detail['salary'] | pln }}</p>
             {% endif %}
 
             <p class="font-weight-bold">Typ ogłoszenia:</p>
             {% set order_types = detail['order_types'] %}
 
             {% if order_types is not none %}
-            {% set order_types = order_types.split(',') %}
+                {% set order_types = order_types.split(',') %}
             {% endif %}
 
             {% if order_types is not none %}
-            {% for type in order_types %}
-            <p>{{ type }}</p>
-            {% endfor %}
+                {% for type in order_types %}
+                    <p>{{ type }}</p>
+                {% endfor %}
             {% endif %}
 
             <p class="font-weight-bold">Tagi:</p>
             {% set tags = detail['tags'] %}
 
             {% if tags is not none %}
-            {% set tags = tags.split(',') %}
+                {% set tags = tags.split(',') %}
             {% endif %}
 
             {% if tags is not none %}
-            {% for tag in tags %}
-            <p>{{ tag }}</p>
-            {% endfor %}
+                {% for tag in tags %}
+                    <p>{{ tag }}</p>
+                {% endfor %}
             {% endif %}
 
         </div>
@@ -80,8 +80,8 @@
         <p class="font-weight-bold">Opis:</p>
         <p class="article-content">{{ detail['description'] }}</p>
 
-        </div>
-        </article>
+    </div>
+</article>
 
         {% set userName = detail['username'] %}
 
@@ -89,63 +89,109 @@
         <form action="{{ url_for('delete_advertisement') }}" method="post">
             <input type="hidden" name="id" value="{{ detail['advertisements.id'] }}">
             <input type="submit" class="btn btn-primary" value="Zamknij ogłoszenie"></form>
-        {% else %}
-        <button type="button" class="btn btn-info" id="bidButton">Zaproponuj stawkę</button>
 
-        {% set adv_id = detail['id'] %}
-        <form method="POST" action="{{ url_for('insert_bid') }}" id="bidForm">
-            {{ form.csrf_token }}
-            <fieldset class="form-group">
-                <legend class="border-bottom mb-4">
-                    Podaj proponowaną stawkę
-                </legend>
-
-                <div class="form-group">
-                    {{ form.bid.label(class="form-control-label") }}
-                    {% if form.bid.errors %}
-                    {{ form.bid(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.bid.errors %}
-                        <span>{{ error }}</span>
-                        {% endfor %}
+            {% if bids is defined and bids|length > 0 %}
+            <p class="font-weight-bold">Oferty:</p>
+            <article class="media content-section">
+                <div class="media-body">
+                    <div class="article-metadata">
+                                
+                    {% for bid in bids %}
+                    <h2><a class="article-title"> Oferta od użytkownika {{ bid['username'] }}</a></h2>
+                    <p class="font-weight-bold">Data złożenia:</p>
+                    <p>{{ bid['date'] }}</p>
+                    <p class="font-weight-bold">Proponowana stawka:</p>
+                    <p>{{ bid['bid'] | pln }}</p>
+                    {% endfor %}
                     </div>
-                    {% else %}
-                    {{ form.bid(class="form-control form-control-lg") }}
-                    {% endif %}
                 </div>
+            </article>
+
+                    {% endif %}
+
+                    {% else %}
+                    
+                    
+                    {% if bids is defined and bids|length > 0 %}
+                    {% set ns = namespace (userHasBid = 0) %}
+                    {% for bid in bids %}
+                    {% set user_name = bid['username'] %}
+                    {% if username == user_name %}
+                        {% set ns.userHasBid = 1 %}
+                        <article class="media content-section">
+                        <div class="media-body">
+                        <div class="article-metadata">
+                        <h2><a class="article-title">Twoja oferta</a></h2>
+                        <p class="font-weight-bold">Data złożenia:</p>
+                        <p>{{ bid['date'] }}</p>
+                        <p class="font-weight-bold">Proponowana stawka:</p>
+                        <p>{{ bid['bid'] | pln }}</p>
+
+                    {% endif %}
+                    {% endfor %}
+                     </div>
+                     </div>
+                     </article>
+                    {% endif %}
+
+                    {% if ns.userHasBid != 1 %}
+                    <button type="button" class="btn btn-info" id="bidButton">Zaproponuj stawkę</button>
+                    {% endif %}
+
+                    {% set adv_id = detail['id'] %}
+                    <form method="POST" action="{{ url_for('insert_bid') }}" id="bidForm">
+                        {{ form.csrf_token }}
+                        <fieldset class="form-group">
+                            <legend class="border-bottom mb-4">
+                                Podaj proponowaną stawkę
+                            </legend>
+
+                            <div class="form-group">
+                                {{ form.bid.label(class="form-control-label") }}
+                                {% if form.bid.errors %}
+                                {{ form.bid(class="form-control form-control-lg is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.bid.errors %}
+                                    <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                {{ form.bid(class="form-control form-control-lg") }}
+                                {% endif %}
+                            </div>
 
 
-                {{ form.adv_id(value=adv_id) }}
+                            {{ form.adv_id(value=adv_id) }}
 
 
-            </fieldset>
-            <div class="form-group">
-                {{ form.submit(class="btn btn-outline-info") }}
-            </div>
+                        </fieldset>
+                        <div class="form-group">
+                            {{ form.submit(class="btn btn-outline-info") }}
+                        </div>
 
-        </form>
+                    </form>
 
-        {% endif %}
+                    {% endif %}
 
-        {% endfor %}
+                    {% endfor %}
 
 
-<script charset="utf-8" type="text/javascript">
+                    <script charset="utf-8" type="text/javascript">
 
-    document.addEventListener("DOMContentLoaded", function () {
-        const form = document.getElementById('bidForm');
-        form.style.display = 'none';
+                        document.addEventListener("DOMContentLoaded", function () {
+                            const form = document.getElementById('bidForm');
+                            form.style.display = 'none';
 
-        const btn = document.getElementById('bidButton');
+                            const btn = document.getElementById('bidButton');
 
-        btn.addEventListener('click', () => {
-            form.style.display = 'block';
-            btn.style.display = 'none';
+                            btn.addEventListener('click', () => {
+                                form.style.display = 'block';
+                                btn.style.display = 'none';
 
-        });
-    });
+                            });
+                        });
 
-</script>
+                    </script>
 
 
 {% endblock content %}

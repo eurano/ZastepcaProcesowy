@@ -61,7 +61,6 @@ cursor = db.cursor(dictionary=True)
 @app.route("/home")
 @login_required
 def home():
-    userId = session["user_id"]
     return render_template('home.html')
 
 
@@ -148,7 +147,6 @@ def advertisements():
            print("Failed operation MySQL table {}".format(error))
 
     return render_template('advertisements.html', advertisements=advertisements)
-    #return render_template('advertisements.html', posts=posts)
 
 
 
@@ -167,14 +165,20 @@ def advertisement_details(id):
         values = (id,)
         cursor.execute(sql, values)
         details = cursor.fetchall()
-        print(details)
 
+
+        sql =  """ SELECT bids.id, date, bid, username FROM bids JOIN users ON bids.bidder_id = users.id WHERE adv_id = %s """
+        cursor.execute(sql, values)
+        bids = cursor.fetchall()
+        
+        if (cursor.rowcount == 0):
+            return render_template('advertisement-details.html', details=details, username=username, form=form)
+        else:
+            return render_template('advertisement-details.html', details=details, bids=bids, username=username, form=form)
 
     except mysql.connector.Error as error:
         print("Failed operation MySQL table {}".format(error))
 
-
-    return render_template('advertisement-details.html', details=details, username=username, form=form)
 
 
 @app.route("/delete-advertisement", methods=['POST'])

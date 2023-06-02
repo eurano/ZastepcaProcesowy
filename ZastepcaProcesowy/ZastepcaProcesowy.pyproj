@@ -44,6 +44,7 @@
     <Content Include="templates\login.html" />
     <Content Include="templates\new-advertisement.html" />
     <Content Include="templates\register.html" />
+    <Content Include="templates\response.html" />
   </ItemGroup>
   <ItemGroup>
     <Interpreter Include="env\">

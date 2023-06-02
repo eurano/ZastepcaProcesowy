@@ -64,6 +64,29 @@ def home():
     return render_template('home.html')
 
 
+@app.route("/ajaxlivesearch",methods=["POST","GET"])
+@login_required
+def ajaxlivesearch():
+    if request.method == 'POST':
+        #search_word = request.form.get['query'] 
+        search_word = request.form.get('query')
+        if (search_word is not None):
+            print(search_word)
+            if search_word == '':
+                sql = "SELECT advertisements.id, title, start_date, salary, location, address, date_of_publication, group_concat(DISTINCT tags.name) AS tags, group_concat(DISTINCT order_types.name) AS order_types FROM advertisements LEFT JOIN tagmap ON advertisements.id=tagmap.advertisement_id LEFT JOIN tags ON tagmap.tag_id=tags.tag_id LEFT JOIN order_type_map ON advertisements.id=order_type_map.advertisement_id LEFT JOIN order_types ON order_type_map.type_id=order_types.type_id GROUP BY advertisements.id"
+                cursor.execute(sql)
+                advertisements = cursor.fetchall()
+            else:    
+                sql = "SELECT advertisements.id, title, start_date, salary, location, address, date_of_publication, group_concat(DISTINCT tags.name) AS tags, group_concat(DISTINCT order_types.name) AS order_types FROM advertisements LEFT JOIN tagmap ON advertisements.id=tagmap.advertisement_id LEFT JOIN tags ON tagmap.tag_id=tags.tag_id LEFT JOIN order_type_map ON advertisements.id=order_type_map.advertisement_id LEFT JOIN order_types ON order_type_map.type_id=order_types.type_id GROUP BY advertisements.id HAVING tags LIKE %s OR title LIKE %s OR location LIKE %s"
+                values = ("%{}%".format(search_word), "%{}%".format(search_word),"%{}%".format(search_word))
+                cursor.execute(sql, values)
+                rows = int(cursor.rowcount)
+                advertisements = cursor.fetchall()
+                print(advertisements)
+    return jsonify({'htmlresponse': render_template('response.html', advertisements=advertisements, rows=rows)})
+
+
+
 @app.route("/register", methods=['GET', 'POST'])
 def register():
     form = RegistrationForm()
@@ -124,6 +147,7 @@ def register():
 
 
 @app.route("/about")
+@login_required
 def about():
     return render_template('about.html', title='About')
 

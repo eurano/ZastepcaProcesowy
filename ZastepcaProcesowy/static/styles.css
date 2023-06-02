@@ -1,4 +1,4 @@
-/* strona*/
+/* theme styles */
 
 body {
     background: #fafafa;
@@ -82,7 +82,7 @@ a.article-title:hover {
 }
 
 
-/* przyciski*/
+/* buttons */
 
 
 .btn-glyphicon {
@@ -114,3 +114,34 @@ a.article-title:hover {
     margin-left: 10px;
     vertical-align: text-bottom;
 }
+
+
+/* search bar */
+.search-table {
+    padding: 10%;
+    margin-top: -6%;
+}
+
+.search-box {
+    background: #c1c1c1;
+    border: 1px solid #ababab;
+    padding: 3%;
+}
+
+    .search-box input:focus {
+        box-shadow: none;
+        border: 2px solid #eeeeee;
+    }
+
+.search-list {
+    background: #fff;
+    border: 1px solid #ababab;
+    border-top: none;
+}
+
+    .search-list h3 {
+        background: #eee;
+        padding: 3%;
+        color: #fe6f41;
+        margin-bottom: 0%;
+    }

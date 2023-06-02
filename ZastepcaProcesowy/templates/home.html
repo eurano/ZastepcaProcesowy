@@ -3,8 +3,50 @@
 {% block content %}
 
 
-  Witaj {{ session['username'] }}!
+<p><h2 align="center">Witaj {{ session['username'] }} !</h2></p>
 
+<div class="container search-table">
+    <p><h2 align="center">Szukaj po lokalizacji, tagach lub tytule</h2></p>
+    <div class="search-box">
+        <div class="row">
+            <div class="col-md-3">
+                <h5>Wpisz szukany tekst</h5>
+            </div>
+            <div class="col-md-9">
+                <input type="text" name="search_text" id="search_text" class="form-control" placeholder="Szukaj np. Sąd Okręgowy w Warszawie">
+            </div>
+        </div>
+    </div>
+    <div id="result"></div>
+</div>
+
+<script>
+$(document).ready(function(){
+  load_data();
+  function load_data(query)
+  {
+   $.ajax({
+    url:"/ajaxlivesearch",
+    method:"POST",
+    data:{query:query},
+    success:function(data)
+    {
+        $('#result').html(data);
+      $("#result").append(data.htmlresponse);
+    }
+   });
+  }
+  $('#search_text').keyup(function(){
+    var search = $(this).val();
+    if(search != ''){
+    load_data(search);
+   }else{
+    load_data();
+   }
+  });
+});
+
+</script>
 
 {% endblock content %}
 

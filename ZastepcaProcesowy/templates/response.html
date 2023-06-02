@@ -1,0 +1,17 @@
+﻿<h3>{{rows}} Records Found</h3>
+<table class="table table-striped custab">
+    <thead>
+        <tr>
+            <th>Lokalizacja</th>
+            <th>Tytuł</th>
+            <th>Data rozpoczęcia</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in advertisements %}
+        <tr>
+            <td>{{row['location']}}</td>
+            <td>{{row['title']}}</td>
+            <td>{{row['start_date']}}</td>
+        </tr>
+        {% endfor %}

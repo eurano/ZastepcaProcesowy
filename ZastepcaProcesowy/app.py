@@ -79,9 +79,10 @@ def ajaxlivesearch():
             else:    
                 sql = "SELECT advertisements.id, title, start_date, salary, location, address, date_of_publication, group_concat(DISTINCT tags.name) AS tags, group_concat(DISTINCT order_types.name) AS order_types FROM advertisements LEFT JOIN tagmap ON advertisements.id=tagmap.advertisement_id LEFT JOIN tags ON tagmap.tag_id=tags.tag_id LEFT JOIN order_type_map ON advertisements.id=order_type_map.advertisement_id LEFT JOIN order_types ON order_type_map.type_id=order_types.type_id GROUP BY advertisements.id HAVING tags LIKE %s OR title LIKE %s OR location LIKE %s"
                 values = ("%{}%".format(search_word), "%{}%".format(search_word),"%{}%".format(search_word))
-                cursor.execute(sql, values)
-                rows = int(cursor.rowcount)
+                cursor.execute(sql, values)     
                 advertisements = cursor.fetchall()
+                rows = cursor.rowcount
+                print(rows)
                 print(advertisements)
     return jsonify({'htmlresponse': render_template('response.html', advertisements=advertisements, rows=rows)})
 
@@ -384,7 +385,7 @@ def new_advertisement():
        # insert advertisement data to database
        try:         
 
-           # TODO search bar https://tutorial101.blogspot.com/2021/01/jquery-ajax-python-flask-and-mysql.html
+           
 
            sql = """ INSERT INTO advertisements (title, start_date, start_time, duration, salary,
                 location, address, file_review, invoice, description, date_of_publication, status,
@@ -401,7 +402,7 @@ def new_advertisement():
            advertisement_id = cursor.lastrowid
 
            # add tags to database
-           # Toxi solution http://howto.philippkeller.com/2005/04/24/Tags-Database-schemas/
+           # Toxi solution 
            tags = request.form.getlist('tags')
            # check if user added any tag
            if (tags != ['']):
@@ -431,7 +432,7 @@ def new_advertisement():
                    cursor.execute(sql, values)
                    db.commit()
 
-           # add order types to DB - array table solution https://dba.stackexchange.com/questions/252554/storing-arrays-in-mysql
+           # add order types to DB - array table solution
            order_types = form.order_type.data
            # check if user selected any type
            if (order_types != ['']):

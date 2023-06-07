@@ -185,18 +185,17 @@
 
 <script charset="utf-8" type="text/javascript">
 
-                        document.addEventListener("DOMContentLoaded", function () {
-                            const form = document.getElementById('bidForm');
-                            form.style.display = 'none';
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById('bidForm');
+    form.style.display = 'none';
 
-                            const btn = document.getElementById('bidButton');
+    const btn = document.getElementById('bidButton');
 
-                            btn.addEventListener('click', () => {
-                                form.style.display = 'block';
-                                btn.style.display = 'none';
-
-                            });
-                        });
+    btn.addEventListener('click', () => {
+    form.style.display = 'block';
+    btn.style.display = 'none';
+    });
+});
 
 </script>
 

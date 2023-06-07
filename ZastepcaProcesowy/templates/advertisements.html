@@ -1,5 +1,8 @@
 ﻿{% extends "layout.html" %}
 {% block content %}
+
+<button class="btn btn-info" onclick="window.location.href = '{{ url_for("new_advertisement") }}'">Dodaj ogłoszenie</button>
+
     {% for row in advertisements %}
 <article class="media content-section">
     <div class="media-body">
@@ -30,6 +33,6 @@
 
 </article>
     {% endfor %}
-<button onclick="window.location.href = '{{ url_for("new_advertisement") }}'">Dodaj ogłoszenie</button>
+
 
 {% endblock content %}

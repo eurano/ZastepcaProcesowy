@@ -1,0 +1,27 @@
+﻿{% extends "layout.html" %}
+
+{% block content %}
+
+<div class="container">
+    <div class="card" style="width: 18rem;">
+        <div class="card-body">
+            {% for row in rows %}
+
+            <h5 class="card-title">
+                {{ row['username'] }}
+            </h5>
+            <p class="card-text">
+                {{ row['proffesion'] }}
+            </p>
+
+            <img class="card-img-top" src="https://media.geeksforgeeks.org/wp-content/uploads/20190506125816/avt.png"
+                 alt="Card image cap">
+
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock content %}

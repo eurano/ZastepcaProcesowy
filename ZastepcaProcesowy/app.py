@@ -119,8 +119,7 @@ def register():
                 cursor.execute(sql, values)
 
                 # Get new user id
-                rows = cursor.fetchone()
-                user_id = rows['id']
+                user_id = cursor.lastrowid
 
                 sql = """ INSERT INTO private_users (name, lastname, email, phone_number, user_id) VALUES (%s,%s,%s,%s,%s) """
                 values = (form.name.data, form.lastname.data, form.email.data, form.phonenumber.data, user_id)
@@ -146,11 +145,29 @@ def register():
 
 
 
-@app.route("/about")
+@app.route("/profile", methods=['GET', 'POST'])
 @login_required
-def about():
-    return render_template('about.html', title='About')
+def profile():
+    
+    sql = """ SELECT * FROM (SELECT users.id As id, username, town, name as proffesion FROM users join lawyers on users.id=lawyers.user_id join professions on lawyers.profession=professions.id)tb WHERE id=%s """
+    values = (session["user_id"],)
+    cursor.execute(sql, values)
+    rows = cursor.fetchall()
 
+    return render_template('profile.html', rows=rows)
+
+
+@app.route("/history", methods=['GET', 'POST'])
+@login_required
+def history():
+    
+    sql = """ SELECT action, time FROM history WHERE user_id=%s """
+    values = (session["user_id"],)
+    cursor.execute(sql, values)
+    rows = cursor.fetchall()
+    print(session["user_id"])
+    print(rows)
+    return render_template('history.html', rows=rows)
 
 
 @app.route("/advertisements")
@@ -426,6 +443,13 @@ def new_advertisement():
                    values = (advertisement_id, order_type)
                    cursor.execute(sql, values)
                    db.commit()
+
+            # add entry to user history table
+                   sql = """ INSERT INTO history (action, time, user_id) VALUES (%s, %s, %s) """
+                   values = ('Utworzyłeś nowe ogłoszenie', datetime.now(), userId)
+                   cursor.execute(sql, values)
+                   db.commit()
+
 
            flash('Ogłoszenie dodane', 'info')
            return redirect(url_for('advertisements'))

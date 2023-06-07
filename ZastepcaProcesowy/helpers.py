@@ -4,6 +4,9 @@ import ast
 import locale
 
 
+def add_hashtag(string):
+    new_string ='#'+string
+    return new_string
 
 def pln(value):
     locale.setlocale(locale.LC_ALL, "pl_PL.UTF-8")

@@ -51,6 +51,7 @@ except Error as e:
     print("Error while connecting to MySQL", e)
 
 
+# Change mysql connector behavior
 cursor = db.cursor()
 cursor = db.cursor(prepared=True)
 cursor = db.cursor(buffered=True)
@@ -68,7 +69,6 @@ def home():
 @login_required
 def ajaxlivesearch():
     if request.method == 'POST':
-        #search_word = request.form.get['query'] 
         search_word = request.form.get('query')
         if (search_word is not None):
             print(search_word)
@@ -87,7 +87,6 @@ def ajaxlivesearch():
     return jsonify({'htmlresponse': render_template('response.html', advertisements=advertisements, rows=rows)})
 
 
-
 @app.route("/register", methods=['GET', 'POST'])
 def register():
     form = RegistrationForm()
@@ -100,6 +99,7 @@ def register():
             sql = """ SELECT * FROM users WHERE username = %s """
             values = (form.username.data,)
             cursor.execute(sql, values)
+            rows = cursor.fetchall()
             rows = cursor.rowcount
             if rows != 0:
                 flash('Ta nazwa użytkownika jest zajęta', 'danger')
@@ -113,11 +113,6 @@ def register():
                 values = (username, now, hash, now)
                 cursor.execute(sql, values)
                 db.commit()
-
-                # Add user personal details to database
-                sql =  """ SELECT (id) FROM users WHERE username = %s """
-                values = (form.username.data,)
-                cursor.execute(sql, values)
 
                 # Get new user id
                 user_id = cursor.lastrowid
@@ -142,8 +137,6 @@ def register():
             return render_template('register.html', title='Register', form=form)
 
     return render_template('register.html', title='Register', form=form)
-
-
 
 
 @app.route("/profile", methods=['GET', 'POST'])
@@ -175,8 +168,6 @@ def history():
 @login_required
 def advertisements():
 
-    userId = session["user_id"]
-
     try:
         sql = """ SELECT advertisements.id, title, start_date, start_time, duration, salary, location, address, file_review, invoice, description, date_of_publication, username,
               group_concat(tags.name) AS tags FROM advertisements LEFT JOIN tagmap ON advertisements.id=tagmap.advertisement_id LEFT JOIN tags ON tagmap.tag_id=tags.tag_id JOIN users ON advertisements.user_id=users.id GROUP BY advertisements.id """
@@ -189,7 +180,6 @@ def advertisements():
            print("Failed operation MySQL table {}".format(error))
 
     return render_template('advertisements.html', advertisements=advertisements)
-
 
 
 @app.route("/advertisement-details/<string:id>", methods=['GET', 'POST'])
@@ -220,7 +210,6 @@ def advertisement_details(id):
 
     except mysql.connector.Error as error:
         print("Failed operation MySQL table {}".format(error))
-
 
 
 @app.route("/delete-advertisement", methods=['POST'])
@@ -261,6 +250,12 @@ def insert_bid():
         cursor.execute(sql, values)
         db.commit()
 
+        # Add entry to user history table
+        sql = """ INSERT INTO history (action, time, user_id) VALUES (%s, %s, %s) """
+        values = ('Wysłałeś ofertę do ogłoszenia', datetime.now(), session["user_id"])
+        cursor.execute(sql, values)
+        db.commit()
+
         flash('Oferta została wysłana', 'info')
         return redirect(url_for('advertisements'))
 
@@ -275,13 +270,11 @@ def insert_bid():
 @login_required
 def new_advertisement():
 
-    # https://stackoverflow.com/questions/41232105/populate-wtforms-select-field-using-value-selected-from-previous-field/41246506#41246506
-
     userId = session["user_id"]
 
     form = AdvertisementForm(form_name='AdvertisementForm')
 
-    # fill dropdowns with all possible choices otherwise wtforms validation will fail
+    # Fill dropdowns with all possible choices otherwise wtforms validation will fail
 
     sql = """ SELECT id, town FROM appeals """
     cursor.execute(sql)
@@ -316,10 +309,8 @@ def new_advertisement():
        
 
     if form.validate_on_submit(): 
-       #and request.form['form_name'] == 'AdvertisementForm':
-       # code to process form
 
-       # get choosen location
+       # Get choosen location
        location = ''
        courtsData = {}
        choosen_court = ''
@@ -336,57 +327,48 @@ def new_advertisement():
            if value is None:
             continue
            if value > 0:
-            # print(key)
-            # print(value)
             choosen_court = key
        
        for field in form:
            if field.name == choosen_court:
                print(dict(field.choices).get(field.data))
-               location = dict(field.choices).get(field.data)  # VARCHAR(120) NOT NULL sprawdzić w bazie jak max długi 
+               location = dict(field.choices).get(field.data)
        
-       appeal = None                            # INT(1) NULL
-       court_of_appeal = None                   # INT(1) NULL
-       district_court = None                    # INT(2) NULL
-       district_court_department = None         # INT(2) NULL
-       regional_court_department = None         # INT(2) NULL
+       appeal = None                            
+       court_of_appeal = None                   
+       district_court = None                    
+       district_court_department = None         
+       regional_court_department = None         
 
-       # get choosen appeal
+       # Get choosen appeal
        if form.appeal.data != None:
            if form.appeal.data != 0:
                appeal = form.appeal.data
 
-       # get choosen court_of appeal
+       # Get choosen court_of appeal
        if form.court_of_appeal.data != None:
            if form.court_of_appeal.data != 0:
                court_of_appeal = form.court_of_appeal.data
 
-       # get choosen district court
+       # Get choosen district court
        if form.district_court.data != None:
            if form.district_court.data != 0:
                district_court = form.district_court.data
 
-       # get choosen district court department
+       # Get choosen district court department
        if form.district_court_department.data != None:
            if form.district_court_department.data != 0:
                district_court_department = form.district_court_department.data
 
-       # get choosen regional court department
+       # Get choosen regional court department
        if form.regional_court_department.data != None:
            if form.regional_court_department.data != 0:
                regional_court_department = form.regional_court_department.data
         
+       try:  
 
-
-       # // TODO DODAĆ DANE LOKALIZACJI SĄDÓW DO BAZY !!!
-            
-
-
-       # insert advertisement data to database
-       try:         
-
-           
-
+       # Insert advertisement data to database
+       
            sql = """ INSERT INTO advertisements (title, start_date, start_time, duration, salary,
                 location, address, file_review, invoice, description, date_of_publication, status,
                 user_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) """
@@ -401,15 +383,20 @@ def new_advertisement():
            # Get new advertisment id
            advertisement_id = cursor.lastrowid
 
-           # add tags to database
-           # Toxi solution 
+           # Insert advertisement location details data to database
+           sql = """ INSERT advertisements_courts (appeal, court_of_appeal, district_court, district_court_department, regional_court_department, advertisement_id) values (%s,%s,%s,%s,%s,%s) """
+           values = (appeal, court_of_appeal, district_court, district_court_department, regional_court_department, advertisement_id)
+           cursor.execute(sql, values)
+           db.commit()
+
+           # Add tags to database (Toxi solution)
            tags = request.form.getlist('tags')
-           # check if user added any tag
+           # Check if user added any tag
            if (tags != ['']):
                print(tags)
                for tag in tags:
                    print(tag)
-                   # prevent inserting duplicated tags
+                   # Prevent inserting duplicated tags
                    sql = """ INSERT INTO tags (name) VALUES (%s) ON DUPLICATE KEY UPDATE name=name """
                    value = parse_tuple("('%s',)" % tag)
                    cursor.execute(sql, value)
@@ -420,7 +407,7 @@ def new_advertisement():
                    tag_id = cursor.lastrowid
                    print(tag_id)
                
-                   if (tag_id == 0): #23000 error handler (when tag already exist)
+                   if (tag_id == 0): # 23000 error handler (when tag already exist)
                        print('if sie odpala')
                        sql = """ SELECT tag_id FROM tags WHERE name = %s """
                        cursor.execute(sql, value)
@@ -432,9 +419,9 @@ def new_advertisement():
                    cursor.execute(sql, values)
                    db.commit()
 
-           # add order types to DB - array table solution
+           # Add order types to DB - array table solution
            order_types = form.order_type.data
-           # check if user selected any type
+           # Check if user selected any type
            if (order_types != ['']):
                print(order_types)
                for order_type in order_types:
@@ -445,7 +432,7 @@ def new_advertisement():
                    cursor.execute(sql, values)
                    db.commit()
 
-            # add entry to user history table
+            # Add entry to user history table
                    sql = """ INSERT INTO history (action, time, user_id) VALUES (%s, %s, %s) """
                    values = ('Utworzyłeś nowe ogłoszenie', datetime.now(), userId)
                    cursor.execute(sql, values)
@@ -465,8 +452,6 @@ def new_advertisement():
     return render_template('new-advertisement.html', form=form)
  
 
-
-
 # This route is required for populating AdvertisementForm
 @app.route('/_get_court_of_appeal')
 def _get_court_of_appeal():
@@ -479,8 +464,6 @@ def _get_court_of_appeal():
     sql = """ SELECT id, court_of_appeal FROM appeals WHERE id = %s """
     cursor.execute(sql, value)
     rows = cursor.fetchall()
-    # print(rows)
-
     court_of_appeal = [(0, "---")]+[(row['id'], row['court_of_appeal']) for row in rows]
     print(court_of_appeal)
     print(jsonify(court_of_appeal))
@@ -492,20 +475,14 @@ def _get_court_of_appeal():
 def _get_district_court():
 
     court_of_appeal = request.args.get('court_of_appeal', '01', type=str)
-    # print(tuple(court_of_appeal))
     value = parse_tuple("('%s',)" % court_of_appeal)
 
 
     sql = """ SELECT id, court FROM district_courts WHERE appeal_id = %s """
     cursor.execute(sql, value)
     rows = cursor.fetchall()
-    # print(rows)
-
     district_court = [(0, "---")]+[(row['id'], row['court']) for row in rows]
-    # print(district_court)
-    # print(jsonify(district_court))
     return jsonify(district_court)
-
 
 
 # This route is required for populating AdvertisementForm
@@ -528,7 +505,6 @@ def _get_district_court_department():
     return jsonify(district_court_department)
 
 
-
 # This route is is required for populating AdvertisementForm
 @app.route('/_get_regional_court_department')
 def _get_regional_court_department():
@@ -536,18 +512,14 @@ def _get_regional_court_department():
     district_court_department = request.args.get('district_court_department', '01', type=str)
     print(tuple(district_court_department))
     value = parse_tuple("('%s',)" % district_court_department)
-
-
     sql = """ SELECT id, department FROM regional_courts WHERE district_court_departm_id = %s """
     cursor.execute(sql, value)
     rows = cursor.fetchall()
     print(rows)
-
     regional_court_department = [(0, "---")]+[(row['id'], row['department']) for row in rows]
     print(regional_court_department)
     print(jsonify(regional_court_department))
     return jsonify(regional_court_department)
-
 
 
 @app.route("/login", methods=['GET', 'POST'])
@@ -585,7 +557,6 @@ def login():
     return render_template('login.html', title='Login', form=form)
 
 
-
 @app.route("/logout")
 def logout():
     """Log user out"""
@@ -595,7 +566,6 @@ def logout():
 
     # Redirect user to login form
     return redirect("/")
-
 
 
 

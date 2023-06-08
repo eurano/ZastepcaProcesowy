@@ -85,9 +85,9 @@
                 {% set ns_name = namespace (username = detail['username']) %}
 
                 {% if ns_name.username == username %}
-                    <form action="{{ url_for('delete_advertisement') }}" method="post">
-                    <input type="hidden" name="id" value="{{ detail['advertisements.id'] }}">
-                    <input type="submit" class="btn btn-primary" value="Zamknij ogłoszenie"></form>             
+                    <form action="{{ url_for('delete_advertisement', id=detail['id']) }}" method="POST">
+                        <button type="submit" class="btn btn-primary">Zamknij ogłoszenie</button>
+                    </form>             
                     {% if bids is defined and bids|length > 0 %}
                         <p class="font-weight-bold">Oferty:</p>
                         <article class="media content-section">
@@ -122,7 +122,7 @@
                                 <p>{{ bid['date'] }}</p>
                                 <p class="font-weight-bold">Proponowana stawka:</p>
                                 <p>{{ bid['bid'] | pln }}</p>
-                                                         </div>
+                            </div>
                      </div>
                      </article>
                             {% endif %}
@@ -180,7 +180,6 @@
                     
 
                {% endfor %}
-
 
 
 <script charset="utf-8" type="text/javascript">

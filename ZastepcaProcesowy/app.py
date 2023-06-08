@@ -17,6 +17,7 @@ app.config['DEBUG'] = True
 
 # Ensure templates are auto-reloaded
 app.config["TEMPLATES_AUTO_RELOAD"] = True
+
 app.config['SECRET_KEY'] = '5791628bb0b13ce0c676dfde280ba245'
 
 # Configure session to use filesystem (instead of signed cookies)
@@ -72,20 +73,29 @@ def ajaxlivesearch():
         search_word = request.form.get('query')
         if (search_word is not None):
             print(search_word)
-            if search_word == '':
-                sql = "SELECT advertisements.id, title, start_date, salary, location, address, date_of_publication, group_concat(DISTINCT tags.name) AS tags, group_concat(DISTINCT order_types.name) AS order_types FROM advertisements LEFT JOIN tagmap ON advertisements.id=tagmap.advertisement_id LEFT JOIN tags ON tagmap.tag_id=tags.tag_id LEFT JOIN order_type_map ON advertisements.id=order_type_map.advertisement_id LEFT JOIN order_types ON order_type_map.type_id=order_types.type_id GROUP BY advertisements.id"
-                cursor.execute(sql)
-                advertisements = cursor.fetchall()
-            else:    
-                sql = "SELECT advertisements.id, title, start_date, salary, location, address, date_of_publication, group_concat(DISTINCT tags.name) AS tags, group_concat(DISTINCT order_types.name) AS order_types FROM advertisements LEFT JOIN tagmap ON advertisements.id=tagmap.advertisement_id LEFT JOIN tags ON tagmap.tag_id=tags.tag_id LEFT JOIN order_type_map ON advertisements.id=order_type_map.advertisement_id LEFT JOIN order_types ON order_type_map.type_id=order_types.type_id GROUP BY advertisements.id HAVING tags LIKE %s OR title LIKE %s OR location LIKE %s"
-                values = ("%{}%".format(search_word), "%{}%".format(search_word),"%{}%".format(search_word))
-                cursor.execute(sql, values)     
-                advertisements = cursor.fetchall()
-                rows = cursor.rowcount
-                print(rows)
-                print(advertisements)
-    return jsonify({'htmlresponse': render_template('response.html', advertisements=advertisements, rows=rows)})
+            try:
+                if search_word == '':
+                    sql = """ SELECT advertisements.id, title, start_date, salary, location, address, date_of_publication, group_concat(DISTINCT tags.name) AS tags,
+                          group_concat(DISTINCT order_types.name) AS order_types FROM advertisements LEFT JOIN tagmap ON advertisements.id=tagmap.advertisement_id LEFT JOIN tags ON tagmap.tag_id=tags.tag_id LEFT JOIN order_type_map ON advertisements.id=order_type_map.advertisement_id LEFT JOIN order_types ON order_type_map.type_id=order_types.type_id GROUP BY advertisements.id """
 
+                    cursor.execute(sql)
+                    advertisements = cursor.fetchall()
+                else:    
+                        sql = """ SELECT advertisements.id, title, start_date, salary, location, address, date_of_publication, group_concat(DISTINCT tags.name) AS tags,
+                               group_concat(DISTINCT order_types.name) AS order_types FROM advertisements LEFT JOIN tagmap ON advertisements.id=tagmap.advertisement_id LEFT JOIN tags ON tagmap.tag_id=tags.tag_id LEFT JOIN order_type_map ON advertisements.id=order_type_map.advertisement_id LEFT JOIN order_types ON order_type_map.type_id=order_types.type_id GROUP BY advertisements.id HAVING tags LIKE %s OR title LIKE %s OR location LIKE %s """
+
+                        values = ("%{}%".format(search_word), "%{}%".format(search_word),"%{}%".format(search_word))
+                        cursor.execute(sql, values)     
+                        advertisements = cursor.fetchall()
+                        rows = cursor.rowcount
+                        print(rows)
+                        print(advertisements)
+                return jsonify({'htmlresponse': render_template('response.html', advertisements=advertisements, rows=rows)})
+
+            except mysql.connector.Error as error:
+                print("Failed operation MySQL table {}".format(error))
+                flash('Błąd połączenia z bazą', 'error')
+                return jsonify({'htmlresponse': render_template('response.html', advertisements=advertisements, rows=rows)})
 
 @app.route("/register", methods=['GET', 'POST'])
 def register():
@@ -143,26 +153,37 @@ def register():
 @login_required
 def profile():
     
-    sql = """ SELECT * FROM (SELECT users.id As id, username, town, name as proffesion FROM users join lawyers on users.id=lawyers.user_id join professions on lawyers.profession=professions.id)tb WHERE id=%s """
-    values = (session["user_id"],)
-    cursor.execute(sql, values)
-    rows = cursor.fetchall()
+    try:
+        sql = """ SELECT * FROM (SELECT users.id As id, username, town,
+              name as proffesion FROM users join lawyers on users.id=lawyers.user_id join professions on lawyers.profession=professions.id)tb WHERE id=%s """
+        values = (session["user_id"],)
+        cursor.execute(sql, values)
+        rows = cursor.fetchall()
 
-    return render_template('profile.html', rows=rows)
+        return render_template('profile.html', rows=rows)
 
+    except mysql.connector.Error as error:
+        print("Failed operation MySQL table {}".format(error))
+        flash('Błąd połączenia z bazą', 'error') 
+        return render_template('profile.html', rows=rows)
 
 @app.route("/history", methods=['GET', 'POST'])
 @login_required
 def history():
-    
-    sql = """ SELECT action, time FROM history WHERE user_id=%s """
-    values = (session["user_id"],)
-    cursor.execute(sql, values)
-    rows = cursor.fetchall()
-    print(session["user_id"])
-    print(rows)
-    return render_template('history.html', rows=rows)
 
+    try:
+        sql = """ SELECT action, time FROM history WHERE user_id=%s """
+        values = (session["user_id"],)
+        cursor.execute(sql, values)
+        rows = cursor.fetchall()
+        print(session["user_id"])
+        print(rows)
+        return render_template('history.html', rows=rows)
+
+    except mysql.connector.Error as error:
+           print("Failed operation MySQL table {}".format(error))
+           flash('Błąd połączenia z bazą', 'error') 
+           return render_template('history.html', rows=rows)
 
 @app.route("/advertisements")
 @login_required
@@ -174,12 +195,12 @@ def advertisements():
         cursor.execute(sql)
         advertisements = cursor.fetchall()
         print(advertisements)
-
+        return render_template('advertisements.html', advertisements=advertisements)
 
     except mysql.connector.Error as error:
            print("Failed operation MySQL table {}".format(error))
-
-    return render_template('advertisements.html', advertisements=advertisements)
+           flash('Błąd połączenia z bazą', 'error') 
+           return render_template('advertisements.html', advertisements=advertisements)
 
 
 @app.route("/advertisement-details/<string:id>", methods=['GET', 'POST'])
@@ -198,7 +219,6 @@ def advertisement_details(id):
         cursor.execute(sql, values)
         details = cursor.fetchall()
 
-
         sql =  """ SELECT bids.id, date, bid, username FROM bids JOIN users ON bids.bidder_id = users.id WHERE adv_id = %s """
         cursor.execute(sql, values)
         bids = cursor.fetchall()
@@ -212,23 +232,25 @@ def advertisement_details(id):
         print("Failed operation MySQL table {}".format(error))
 
 
-@app.route("/delete-advertisement", methods=['POST'])
+@app.route("/delete-advertisement/<int:id>", methods=['POST'])
 @login_required
-def delete_advertisement():
+def delete_advertisement(id):
 
     try:
-        print(request.form['id'])
         sql = """ DELETE FROM advertisements WHERE id = %s """
-        values = (request.form['id'],)
+        values = (id,)
         cursor.execute(sql, values)
+        db.commit()
 
         flash('Ogłoszenie usunięte', 'info')
         return redirect(url_for('advertisements'))
 
     except mysql.connector.Error as error:
         print("Failed operation MySQL table {}".format(error))
-
-        flash('Ogłoszenie nie zostało usunięte z powodu błędu', 'error')
+        if(str(error.sqlstate)=='23000'):
+            flash('Najpierw odrzuć wszystkie oferty', 'error')
+        else:
+            flash('Ogłoszenie nie zostało usunięte z powodu błędu', 'error')
 
         return redirect(url_for('advertisements'))
 
@@ -275,38 +297,41 @@ def new_advertisement():
     form = AdvertisementForm(form_name='AdvertisementForm')
 
     # Fill dropdowns with all possible choices otherwise wtforms validation will fail
+    try:
+        sql = """ SELECT id, town FROM appeals """
+        cursor.execute(sql)
+        rows = cursor.fetchall()
 
-    sql = """ SELECT id, town FROM appeals """
-    cursor.execute(sql)
-    rows = cursor.fetchall()
+        form.appeal.choices = [(0, "---")]+[(row['id'], row['town']) for row in rows]
 
-    form.appeal.choices = [(0, "---")]+[(row['id'], row['town']) for row in rows]
+        sql = """ SELECT id, court_of_appeal FROM appeals """
+        cursor.execute(sql)
+        rows = cursor.fetchall()
+        print(rows)
 
-    sql = """ SELECT id, court_of_appeal FROM appeals """
-    cursor.execute(sql)
-    rows = cursor.fetchall()
-    print(rows)
+        form.court_of_appeal.choices = [(0, "---")]+[(row['id'], row['court_of_appeal']) for row in rows]
 
-    form.court_of_appeal.choices = [(0, "---")]+[(row['id'], row['court_of_appeal']) for row in rows]
+        sql = """ SELECT id, court FROM district_courts """
+        cursor.execute(sql)
+        rows = cursor.fetchall()
 
-    sql = """ SELECT id, court FROM district_courts """
-    cursor.execute(sql)
-    rows = cursor.fetchall()
+        form.district_court.choices = [(0, "---")]+[(row['id'], row['court']) for row in rows]
 
-    form.district_court.choices = [(0, "---")]+[(row['id'], row['court']) for row in rows]
+        sql = """ SELECT id, department FROM district_court_departments """
+        cursor.execute(sql)
+        rows = cursor.fetchall()
 
-    sql = """ SELECT id, department FROM district_court_departments """
-    cursor.execute(sql)
-    rows = cursor.fetchall()
-
-    form.district_court_department.choices = [(0, "---")]+[(row['id'], row['department']) for row in rows]
+        form.district_court_department.choices = [(0, "---")]+[(row['id'], row['department']) for row in rows]
     
-    sql = """ SELECT id, department FROM regional_courts """
-    cursor.execute(sql)
-    rows = cursor.fetchall()
+        sql = """ SELECT id, department FROM regional_courts """
+        cursor.execute(sql)
+        rows = cursor.fetchall()
 
-    form.regional_court_department.choices = [(0, "---")]+[(row['id'], row['department']) for row in rows]
-       
+        form.regional_court_department.choices = [(0, "---")]+[(row['id'], row['department']) for row in rows]
+    
+    except mysql.connector.Error as error:
+        print("Failed operation MySQL table {}".format(error))
+        flash('Błąd połączenia z bazą', 'error')
 
     if form.validate_on_submit(): 
 
@@ -365,13 +390,12 @@ def new_advertisement():
            if form.regional_court_department.data != 0:
                regional_court_department = form.regional_court_department.data
         
+       # Insert advertisement data to database
        try:  
 
-       # Insert advertisement data to database
-       
            sql = """ INSERT INTO advertisements (title, start_date, start_time, duration, salary,
-                location, address, file_review, invoice, description, date_of_publication, status,
-                user_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) """
+                 location, address, file_review, invoice, description, date_of_publication, status,
+                 user_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) """
 
            values = (form.title.data, form.start_date.data, form.start_time.data, form.duration.data, form.salary.data,
                     location, form.address.data, form.file_review.data, form.invoice.data, form.description.data,
@@ -384,7 +408,8 @@ def new_advertisement():
            advertisement_id = cursor.lastrowid
 
            # Insert advertisement location details data to database
-           sql = """ INSERT advertisements_courts (appeal, court_of_appeal, district_court, district_court_department, regional_court_department, advertisement_id) values (%s,%s,%s,%s,%s,%s) """
+           sql = """ INSERT advertisements_courts (appeal, court_of_appeal, district_court, district_court_department, regional_court_department,
+                 advertisement_id) values (%s,%s,%s,%s,%s,%s) """
            values = (appeal, court_of_appeal, district_court, district_court_department, regional_court_department, advertisement_id)
            cursor.execute(sql, values)
            db.commit()
@@ -460,15 +485,19 @@ def _get_court_of_appeal():
     print(tuple(appeal))
     value = parse_tuple("('%s',)" % appeal)
 
+    try:
+        sql = """ SELECT id, court_of_appeal FROM appeals WHERE id = %s """
+        cursor.execute(sql, value)
+        rows = cursor.fetchall()
+        court_of_appeal = [(0, "---")]+[(row['id'], row['court_of_appeal']) for row in rows]
+        print(court_of_appeal)
+        print(jsonify(court_of_appeal))
+        return jsonify(court_of_appeal)
 
-    sql = """ SELECT id, court_of_appeal FROM appeals WHERE id = %s """
-    cursor.execute(sql, value)
-    rows = cursor.fetchall()
-    court_of_appeal = [(0, "---")]+[(row['id'], row['court_of_appeal']) for row in rows]
-    print(court_of_appeal)
-    print(jsonify(court_of_appeal))
-    return jsonify(court_of_appeal)
-
+    except mysql.connector.Error as error:
+        print("Failed operation MySQL table {}".format(error))
+        flash('Błąd połączenia z bazą danych', 'error')
+        return jsonify(court_of_appeal)
 
 # This route is required for populating AdvertisementForm
 @app.route('/_get_district_court')
@@ -477,50 +506,64 @@ def _get_district_court():
     court_of_appeal = request.args.get('court_of_appeal', '01', type=str)
     value = parse_tuple("('%s',)" % court_of_appeal)
 
+    try:
+        sql = """ SELECT id, court FROM district_courts WHERE appeal_id = %s """
+        cursor.execute(sql, value)
+        rows = cursor.fetchall()
+        district_court = [(0, "---")]+[(row['id'], row['court']) for row in rows]
+        return jsonify(district_court)
 
-    sql = """ SELECT id, court FROM district_courts WHERE appeal_id = %s """
-    cursor.execute(sql, value)
-    rows = cursor.fetchall()
-    district_court = [(0, "---")]+[(row['id'], row['court']) for row in rows]
-    return jsonify(district_court)
-
+    except mysql.connector.Error as error:
+        print("Failed operation MySQL table {}".format(error))
+        flash('Błąd połączenia z bazą danych', 'error')
+        return jsonify(district_court)
 
 # This route is required for populating AdvertisementForm
 @app.route('/_get_district_court_department')
 def _get_district_court_department():
 
-    district_court = request.args.get('district_court', '01', type=str)
-    print(tuple(district_court))
-    value = parse_tuple("('%s',)" % district_court)
+    try:
+        district_court = request.args.get('district_court', '01', type=str)
+        print(tuple(district_court))
+        value = parse_tuple("('%s',)" % district_court)
 
 
-    sql = """ SELECT id, department FROM district_court_departments WHERE district_court_id = %s """
-    cursor.execute(sql, value)
-    rows = cursor.fetchall()
-    print(rows)
+        sql = """ SELECT id, department FROM district_court_departments WHERE district_court_id = %s """
+        cursor.execute(sql, value)
+        rows = cursor.fetchall()
+        print(rows)
 
-    district_court_department = [(0, "---")]+[(row['id'], row['department']) for row in rows]
-    print(district_court_department)
-    print(jsonify(district_court_department))
-    return jsonify(district_court_department)
+        district_court_department = [(0, "---")]+[(row['id'], row['department']) for row in rows]
+        print(district_court_department)
+        print(jsonify(district_court_department))
+        return jsonify(district_court_department)
 
+    except mysql.connector.Error as error:
+        print("Failed operation MySQL table {}".format(error))
+        flash('Błąd połączenia z bazą danych', 'error')
+        return jsonify(district_court_department)
 
 # This route is is required for populating AdvertisementForm
 @app.route('/_get_regional_court_department')
 def _get_regional_court_department():
 
-    district_court_department = request.args.get('district_court_department', '01', type=str)
-    print(tuple(district_court_department))
-    value = parse_tuple("('%s',)" % district_court_department)
-    sql = """ SELECT id, department FROM regional_courts WHERE district_court_departm_id = %s """
-    cursor.execute(sql, value)
-    rows = cursor.fetchall()
-    print(rows)
-    regional_court_department = [(0, "---")]+[(row['id'], row['department']) for row in rows]
-    print(regional_court_department)
-    print(jsonify(regional_court_department))
-    return jsonify(regional_court_department)
+    try:
+        district_court_department = request.args.get('district_court_department', '01', type=str)
+        print(tuple(district_court_department))
+        value = parse_tuple("('%s',)" % district_court_department)
+        sql = """ SELECT id, department FROM regional_courts WHERE district_court_departm_id = %s """
+        cursor.execute(sql, value)
+        rows = cursor.fetchall()
+        print(rows)
+        regional_court_department = [(0, "---")]+[(row['id'], row['department']) for row in rows]
+        print(regional_court_department)
+        print(jsonify(regional_court_department))
+        return jsonify(regional_court_department)
 
+    except mysql.connector.Error as error:
+        print("Failed operation MySQL table {}".format(error))
+        flash('Błąd połączenia z bazą danych', 'error')
+        return jsonify(regional_court_department)
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():

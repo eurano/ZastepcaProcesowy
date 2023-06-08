@@ -1,38 +1,34 @@
 ﻿{% extends "layout.html" %}
+
 {% block content %}
 
 <button class="btn btn-info" onclick="window.location.href = '{{ url_for("new_advertisement") }}'">Dodaj ogłoszenie</button>
 
     {% for row in advertisements %}
-<article class="media content-section">
-    <div class="media-body">
-        <div class="article-metadata">
-            <h2><a class="article-title" href="{{ url_for('advertisement_details', id = row['id']) }}">{{ row['title']  }}</a></h2>
-            <small class="text-muted">{{ row[start_date] }}</small>
-            <small class="text-muted">{{ row['start_time'] }}</small>
+        <article class="media content-section">
+        <div class="media-body">
+            <div class="article-metadata">
+                <h2><a class="article-title" href="{{ url_for('advertisement_details', id = row['id']) }}">{{ row['title']  }}</a></h2>
+                <small class="text-muted">{{ row[start_date] }}</small>
+                <small class="text-muted">{{ row['start_time'] }}</small>
+            </div>
+            <p class="article-content">{{ row['location'] }}</p>
 
+            {% set tags = row['tags'] %}
 
+            {% if tags is not none %}
+            {% set tags = tags.split(',') %}
+            {% endif %}
 
+            {% if tags is not none %}
+            {% for tag in tags %}
+            <p>{{ tag }}</p>
+            {% endfor %}
+            {% endif %}
 
         </div>
-        <p class="article-content">{{ row['location'] }}</p>
 
-        {% set tags = row['tags'] %}
-
-        {% if tags is not none %}
-        {% set tags = tags.split(',') %}
-        {% endif %}
-
-        {% if tags is not none %}
-        {% for tag in tags %}
-        <p>{{ tag }}</p>
-        {% endfor %}
-        {% endif %}
-
-    </div>
-
-</article>
+        </article>
     {% endfor %}
-
 
 {% endblock content %}

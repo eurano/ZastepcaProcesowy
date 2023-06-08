@@ -1,4 +1,4 @@
-/* theme styles */
+/* main theme style */
 
 body {
     background: #fafafa;
@@ -64,41 +64,8 @@ a.article-title:hover {
         text-decoration: none;
     }
 
-.article-svg {
-    width: 25px;
-    height: 25px;
-    vertical-align: middle;
-}
 
-.account-img {
-    height: 125px;
-    width: 125px;
-    margin-right: 20px;
-    margin-bottom: 16px;
-}
-
-.account-heading {
-    font-size: 2.5rem;
-}
-
-
-/* buttons */
-
-
-.btn-glyphicon {
-    padding: 8px;
-    background: #ffffff;
-    margin-right: 4px;
-}
-
-.icon-btn {
-    padding: 1px 15px 3px 2px;
-    border-radius: 50px;
-}
-
-
-
-/* input field do tagów */
+/* input field for tags */
 .input-wrapper div {
     margin-bottom: 10px;
 }
